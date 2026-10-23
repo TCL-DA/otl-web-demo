@@ -350,7 +350,7 @@ def card_img(r):
     return SYS_ICON.replace('width="114" height="76"', 'width="300" height="200"') if r.get("system") else im_tag(r["hero"], r["mode"], r["name"])
 
 # Liên hệ nhanh + WhatsApp: có trên otlpro.com hiện tại (form đè lên ảnh nền + nút WhatsApp nổi) — giữ chức năng,
-# trình bày lại kiểu Apple: form là một mục riêng nền sạch; nút WhatsApp viên thuốc viền mảnh, không bóng.
+# trình bày lại kiểu Apple: form là một mục riêng nền sạch; nút chat nổi (WhatsApp · Zalo · Messenger) viền mảnh, không bóng.
 WA = "https://wa.me/84936198938"
 WA_SVG = ('<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="#25d366" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/>'
           '<path fill="#fff" d="M16.9 14.3c-.3-.1-1.6-.8-1.8-.9-.3-.1-.4-.1-.6.1l-.8 1c-.2.2-.3.2-.6.1-1.6-.8-2.7-1.5-3.8-3.3-.3-.5.3-.5.8-1.6.1-.2 0-.3 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.3.3-1 1-1 2.3s1 2.7 1.2 2.9c.1.2 2 3.1 4.9 4.3 1.8.8 2.5.8 3.4.7.6-.1 1.6-.7 1.9-1.3.2-.7.2-1.2.2-1.3-.1-.2-.3-.3-.6-.4z"/></svg>')
@@ -364,8 +364,8 @@ SOCIAL = [
      '<path d="M14 8.5V7c0-.6.4-1 1-1h2V2.5h-2.8C11.6 2.5 10 4.2 10 6.7v1.8H7.5V12H10v9.5h4V12h2.7l.5-3.5z" fill="currentColor"/>'),
     ("Instagram", "https://www.instagram.com/o_tesla_roaster/",
      '<rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.2" cy="6.8" r="1.2" fill="currentColor"/>'),
-    ("Threads", "https://www.threads.net/@o_tesla_roaster",
-     '<path d="M16.7 11.3c-.3-2.6-1.9-4-4.4-4-1.6 0-2.9.7-3.7 1.9l1.5 1c.5-.8 1.2-1.1 2.2-1.1 1.2 0 2 .6 2.3 1.8a9 9 0 0 0-2-.2c-2.4 0-4 1.2-4 3 0 1.8 1.5 3 3.4 3 2.5 0 3.8-1.7 4-4.3 1 .5 1.5 1.3 1.5 2.3 0 2-2 3.7-5.2 3.7-3.9 0-6.2-2.5-6.2-6.6S6.4 5 10.3 5h1.5c3.4 0 5.6 1.7 6.1 4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'),
+    ("Threads", "https://www.threads.net/@o_tesla_roaster",   # biểu tượng theo Simple Icons (CC0)
+     '<path fill="currentColor" d="M12.19 24h-.01c-3.58-.02-6.33-1.2-8.18-3.51C2.35 18.44 1.5 15.59 1.47 12.01v-.02c.03-3.58.88-6.43 2.53-8.48C5.85 1.2 8.6.02 12.18 0h.01c2.75.02 5.04.73 6.83 2.1 1.68 1.29 2.86 3.13 3.51 5.47l-2.04.57c-1.1-3.96-3.9-5.98-8.3-6.02-2.91.02-5.11.94-6.54 2.72C4.31 6.5 3.62 8.91 3.59 12c.03 3.09.72 5.5 2.06 7.16 1.43 1.78 3.63 2.7 6.54 2.72 2.62-.02 4.36-.63 5.8-2.05 1.65-1.61 1.62-3.59 1.09-4.8-.31-.71-.87-1.3-1.63-1.75-.19 1.35-.62 2.45-1.28 3.27-.89 1.1-2.14 1.7-3.73 1.79-1.2.07-2.36-.22-3.26-.8-1.06-.69-1.69-1.74-1.75-2.96-.07-1.19.41-2.29 1.33-3.08.88-.76 2.12-1.21 3.58-1.29a13.85 13.85 0 0 1 3.02.14c-.13-.74-.38-1.33-.75-1.76-.51-.59-1.31-.88-2.36-.89h-.03c-.84 0-1.99.23-2.72 1.32L7.73 7.85c.98-1.45 2.57-2.26 4.48-2.26h.04c3.2.02 5.1 1.98 5.29 5.39.11.05.22.09.32.14 1.49.7 2.58 1.76 3.15 3.07.8 1.82.87 4.79-1.55 7.16-1.85 1.81-4.09 2.63-7.28 2.65zm1-11.69c-.24 0-.49.01-.74.02-1.84.1-2.98.95-2.92 2.14.07 1.26 1.45 1.84 2.78 1.77 1.22-.07 2.82-.54 3.09-3.71a10.5 10.5 0 0 0-2.21-.22z"/>'),
     ("YouTube", "https://www.youtube.com/@otlroaster",
      '<rect x="2.5" y="5.5" width="19" height="13" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 9.2v5.6l4.8-2.8z" fill="currentColor"/>'),
     ("TikTok", "https://www.tiktok.com/@o_tesla_roaster",

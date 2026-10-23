@@ -344,17 +344,13 @@ h1,h2,h3,h4,p{margin:0}
 @media (max-width:834px){.theme{margin-left:auto}.burger{margin-left:0}}
 :is([data-theme="dark"],.dk) .tile .art.dg .circ{background:var(--plate);border-radius:18px;padding:16px 18px}
 
-/* ---------- liên hệ nhanh (trang chủ) + nút WhatsApp nổi ---------- */
+/* ---------- liên hệ nhanh (trang chủ) ---------- */
 .contact{display:grid;grid-template-columns:1fr 1.15fr;gap:64px;align-items:start}
 .ct-ways{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:12px}
 .form.ct-f{margin-top:0;background:var(--card);border-radius:var(--r-card);padding:34px 32px}
 .form.ct-f input,.form.ct-f textarea{background:var(--canvas)}
-.wa{position:fixed;right:22px;bottom:22px;z-index:70;display:flex;align-items:center;gap:8px;height:48px;padding:0 18px 0 14px;
-  border-radius:var(--r-pill);background:var(--white);border:1px solid var(--line);color:var(--ink);font-size:15px;font-weight:600;transition:background-color .2s}
-.wa:hover{background:var(--canvas)}
 .foot{padding-bottom:84px}
 @media (max-width:834px){.contact{grid-template-columns:1fr;gap:34px}.form.ct-f{padding:26px 20px}}
-@media (max-width:480px){.wa{width:52px;height:52px;padding:0;justify-content:center;right:16px;bottom:16px}.wa span{display:none}.wa svg{width:26px;height:26px}}
 
 /* ---------- ảnh "cả nhà" trang chủ: máy đứng cạnh nhau, cao theo tỉ lệ thật ---------- */
 .family{--k:1;display:flex;align-items:flex-end;justify-content:center;gap:clamp(8px,2.4vw,36px);max-width:1120px;margin:56px auto 0;padding:28px 22px 24px}
@@ -368,7 +364,6 @@ h1,h2,h3,h4,p{margin:0}
 .family{margin-top:36px}.family figcaption{white-space:nowrap}@media (max-width:480px){.family figcaption{font-size:11px}}
 
 /* ---------- nút chat nổi (WhatsApp · Zalo · Messenger) ---------- */
-.wa{display:none}
 .chat{position:fixed;right:22px;bottom:22px;z-index:70;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
 .chat-b{display:flex;align-items:center;gap:8px;height:48px;padding:0 20px 0 16px;border-radius:var(--r-pill);background:var(--white);
   border:1px solid var(--line);color:var(--ink);font-size:15px;font-weight:600;cursor:pointer;transition:background-color .2s,color .2s}
