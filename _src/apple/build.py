@@ -1140,5 +1140,8 @@ def main():
     total = sum(p.stat().st_size for p in IMG.iterdir())
     print(f"{len(pages)} trang -> {OUT}  | anh: {len(list(IMG.iterdir()))} file, {total / 1e6:.1f} MB")
 
+# Nội dung giống web gốc (Claude 24/10): goc.py chỉ BỔ SUNG — bọc hàm trang, chèn mục, thêm trang mới.
+exec(compile((HERE / "goc.py").read_text(encoding="utf-8"), str(HERE / "goc.py"), "exec"))
+
 if __name__ == "__main__":
     main()
