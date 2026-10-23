@@ -32,20 +32,16 @@
 
 /* ===== 2 + 3 · bảo tàng ánh sáng ngày — Dòng máy, Thiết bị, So sánh / Giải pháp, Hỗ trợ ===== */
 :root:not([data-theme="dark"]) :is(.st2,.st3){--white:#fff;--canvas:#f5f5f7;--ink2:#707070;--ink3:#707070}
-:is(.st2,.st3) main>section:nth-of-type(odd):not(.dk){background:var(--canvas)}
-:is(.st2,.st3) main>section:nth-of-type(even):not(.dk){background:var(--white)}
-:is(.st2,.st3) main>section>.wrap>:is(.eyebrow,.h-hero,.h-xl,.h-l,.lead){text-align:center;margin-left:auto;margin-right:auto}
-:is(.st2,.st3) .rail-head{flex-direction:column;align-items:center;gap:10px}
-:is(.st2,.st3) main>section>.wrap>.lead{max-width:980px}
-:is(.st2,.st3) main>section>.wrap>.btns{justify-content:center}
+:is(.st2,.st3) main>section:first-of-type:not(.dk){background:var(--canvas)}
+:root:not([data-theme="dark"]) .st3 main>section:first-of-type:not(.dk){background:#aad0f6;--ink2:#2c3a48;--ink3:#2c3a48;--link:#00468c}
+:is(.st2,.st3) main>section:first-of-type>.wrap>:is(.eyebrow,.h-hero,.h-xl,.h-l,.lead){text-align:center;margin-left:auto;margin-right:auto}
+:is(.st2,.st3) main>section:first-of-type>.wrap>.lead{max-width:980px}
+:is(.st2,.st3) main>section:first-of-type>.wrap>.btns{justify-content:center}
 :is(.st2,.st3) .h-xl,:is(.st2,.st3) .h-l{font-size:clamp(32px,4.6vw,56px);line-height:1.07;letter-spacing:-.005em}
 :is(.st2,.st3) .btn{font-size:14px;padding:11px 21px;border-radius:980px}
 :is(.st2,.st3) .btns{gap:8px}
 :is(.st2,.st3) .btn-o{border-color:var(--link);color:var(--link)}
 :is(.st2,.st3) .btn-o:hover{background:var(--link);color:#fff}
-/* bản 3: dải mở đầu xanh băng (Ice Wash) — chỉ ở bản sáng */
-:root:not([data-theme="dark"]) .st3 main>section.g-ice{background:#aad0f6;--ink2:#2c3a48;--ink3:#2c3a48;--white:#fff;--canvas:#fff;--line:#7fb3e6}
-:root:not([data-theme="dark"]) .st3 main>section.g-ice .btn-o{border-color:#00468c;color:#00468c}
 
 /* ===== 4 · tủ kính trắng (iPad Air) — OTL-12 / 15 ===== */
 :root:not([data-theme="dark"]) .st4{--white:#fff;--canvas:#f3f6f6;--wash:#f3f6f6;--pebble:#e8e8ed;--ink2:#6e6e73;--ink3:#6e6e73;--line:#dedfe2}
@@ -102,7 +98,7 @@
 :root:not([data-theme="dark"]) .st7{--white:#fff;--canvas:#f5f5f7;--ink2:#6e6e73;--ink3:#6e6e73}
 .st7 .dk{--white:#000;--canvas:#1d1d1f;--card:#1d1d1f;--ink2:#a1a1a6;--ember:#f56900}
 .st7 .dk.bg-c{background:#000}
-.st7 .dk .lc,.st7 .dk .fc{background:#1d1d1f}
+.st7 section.dk :is(.lc,.fc){background:#1d1d1f}
 .st7 .sec{padding-top:104px;padding-bottom:104px}
 .st7 .eyebrow{color:var(--ember);font-size:17px;font-weight:600;letter-spacing:-.011em}
 .st7 .btn{border-radius:36px}
@@ -120,7 +116,7 @@
 /* ===== 8 · nhà hát đen — OTL-120 ===== */
 :root:not([data-theme="dark"]) .st8{--white:#fff;--canvas:#f5f5f7;--ink2:#6e6e73;--ink3:#6e6e73}
 .st8 .dk{--white:#000;--canvas:#000;--card:#1d1d1f;--link:#2997ff;--ink2:#a1a1a6}
-.st8 .dk .lc,.st8 .dk .fc,.st8 .dk .pg-main{background:#1d1d1f}
+.st8 section.dk :is(.lc,.fc,.pg-main){background:#1d1d1f}
 .st8 .sec{padding-top:80px;padding-bottom:80px}
 .st8 .h-l{font-size:clamp(30px,3.4vw,40px);line-height:1.1;letter-spacing:0}
 .st8 .product-hero .eyebrow{font-size:17px;font-weight:400;color:var(--ink)}
@@ -128,3 +124,100 @@
 @media (min-width:835px){.st8 .product-hero .wrap{grid-template-columns:1.15fr 1fr}}
 .st8 .mini .in{border-radius:980px;background:#1d1d1f;border-color:#333336}
 .st8 .g-buy{background:#424245;border-color:#424245;color:#fff;--ink2:#d2d2d7}
+
+/* ======================================================================
+   8 phong cách theo TỪNG MỤC (lớp .ssN trên <section>, phong.py xoay vòng) — đặt sau khối trang để thắng khi trùng.
+   Bản tối: mục sáng dùng bảng màu tối của site; mục 7/8 luôn tối (có lớp .dk).
+   ====================================================================== */
+main>section.ss{--card:#161617}
+/* mục sáng đặt lại đủ bộ màu bản sáng: trang máy công nghiệp có <main class="dk"> nên không được thừa hưởng */
+:root:not([data-theme="dark"]) main>section.ss:not(.dk){--ink:#1d1d1f;--ink2:#6e6e73;--ink3:#6e6e73;--line:#d2d2d7;--pebble:#e8e8ed;--wash:#eceef1;--white:#fff;--canvas:#f5f5f7;--card:#fff;--link:#0066cc;--red-ink:#b91c1c;--sig:#0071e3;--plate:#f5f5f7;--ember:#b64400;color:var(--ink)}
+main>section.ss :is(.lc,.fc,.g-var,.step,.tile,.diagram,.g-shop,.cmp-col){background:var(--card)}
+
+/* ss1 · phòng trưng bày trắng: nền trắng, thẻ xám sương, nhãn cam, nút đặc bo 12 */
+:root:not([data-theme="dark"]) main>section.ss1:not(.dk){--white:#fff;--canvas:#f5f5f7;--card:#f5f5f7;--ink2:#6e6e73;--ink3:#6e6e73}
+main>section.ss1{background:var(--white)}
+.ss1 .eyebrow{color:var(--ember);font-weight:600}
+.ss1 :is(.h-l,.h-xl){letter-spacing:-.015em}
+.ss1 .btn-f{border-radius:12px}
+
+/* ss2 · bảo tàng ánh sáng ngày: nền sương, cụm chữ giữa, cặp nút viên thuốc */
+:root:not([data-theme="dark"]) main>section:is(.ss2,.ss3):not(.dk){--white:#fff;--canvas:#f5f5f7;--card:#fff;--ink2:#707070;--ink3:#707070}
+main>section.ss2{background:var(--canvas)}
+:is(.ss2,.ss3)>.wrap>:is(.eyebrow,.h-xl,.h-l,.h-m,.lead){text-align:center;margin-left:auto;margin-right:auto}
+:is(.ss2,.ss3)>.wrap>.lead{max-width:980px}
+:is(.ss2,.ss3)>.wrap>.btns{justify-content:center}
+:is(.ss2,.ss3) .rail-head{flex-direction:column;align-items:center;gap:10px}
+:is(.ss2,.ss3) :is(.h-l,.h-xl){font-size:clamp(32px,4.6vw,56px);line-height:1.07;letter-spacing:-.005em}
+:is(.ss2,.ss3) .btn{font-size:14px;padding:11px 21px}
+:is(.ss2,.ss3) .btns{gap:8px}
+:is(.ss2,.ss3) .btn-o{border-color:var(--link);color:var(--link)}
+
+/* ss3 · như ss2, dải xanh băng (chỉ bản sáng) */
+:root:not([data-theme="dark"]) main>section.ss3:not(.dk){--ink2:#2c3a48;--ink3:#2c3a48;--link:#00468c;--line:#7fb3e6;background:#aad0f6}
+main>section.ss3{background:var(--canvas)}
+:root:not([data-theme="dark"]) main>section.ss3:not(.dk){background:#aad0f6}
+:root:not([data-theme="dark"]) .ss3 .eyebrow{color:var(--ink)}
+
+/* ss4 · tủ kính trắng: nền trắng, thẻ #f3f6f6 đệm 40, tiêu đề 56 */
+:root:not([data-theme="dark"]) main>section.ss4:not(.dk){--white:#fff;--canvas:#f3f6f6;--card:#f3f6f6;--ink2:#6e6e73;--ink3:#6e6e73;--line:#dedfe2}
+main>section.ss4{background:var(--white)}
+.ss4 :is(.lc,.fc){padding:40px}
+.ss4 .eyebrow{color:var(--ember);font-weight:600}
+.ss4 :is(.h-l,.h-xl){font-size:clamp(34px,4.6vw,56px);line-height:1.07;letter-spacing:-.005em}
+
+/* ss5 · sương sớm: nền sương, thẻ trắng, nút viền mực, tiêu đề lớn */
+:root:not([data-theme="dark"]) main>section:is(.ss5,.ss6):not(.dk){--white:#f5f5f7;--canvas:#f5f5f7;--card:#fff;--ink2:#6e6e73;--ink3:#6e6e73}
+main>section:is(.ss5,.ss6){background:var(--white)}
+.ss5 .btn-o{border:1px solid var(--ink);color:var(--ink)}
+.ss5 .btn-o:hover{background:var(--ink);color:var(--white)}
+.ss5 :is(.h-l,.h-xl){font-size:clamp(36px,5vw,64px);line-height:1.07;letter-spacing:.004em}
+
+/* ss6 · bê tông điện ảnh: nhãn chữ hoa, tiêu đề trái, dòng viên thuốc */
+:root:not([data-theme="dark"]) main>section.ss6:not(.dk){--wash:#e2e2e5;--line:#d6d6d6}
+.ss6,.ss6 .center{text-align:left}
+.ss6 .measure{margin-left:0}
+.ss6 .center .btns{justify-content:flex-start}
+.ss6 .eyebrow{text-transform:uppercase;font-size:12px;letter-spacing:.02em;color:var(--ink)}
+.ss6 :is(.h-l,.h-xl){font-size:clamp(32px,4.2vw,56px);line-height:1.07;letter-spacing:-.005em}
+.ss6 :is(.know,.g-ticks) li{background:var(--card);border:0;border-radius:28px;padding:10px 18px 10px 12px;display:flex;align-items:center;gap:12px}
+.ss6 :is(.know,.g-ticks) li::before{content:"+";flex:0 0 24px;height:24px;border-radius:50%;background:var(--ink);color:var(--white);
+  display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1}
+
+/* ss7 · tủ kính đen obsidian: nền đen, thẻ #1d1d1f, nhãn cam, tiêu đề 700 */
+main>section.ss7.dk,main>section.ss8.dk{--white:#000;--canvas:#1d1d1f;--card:#1d1d1f;--ink:#f5f5f7;--ink2:#a1a1a6;--ink3:#a1a1a6;--line:#333336;background:#000}
+main>section.ss7.dk{--ember:#f56900}
+.ss7 .eyebrow{color:var(--ember);font-size:17px;font-weight:600;letter-spacing:-.011em}
+.ss7 :is(.h-l,.h-xl){font-weight:700;letter-spacing:-.015em}
+.ss7 .btn{border-radius:36px}
+
+/* ss8 · nhà hát đen: liên kết xanh sáng, tiêu đề 40 trái */
+main>section.ss8.dk{--link:#2997ff;--canvas:#000}
+.ss8 .eyebrow{font-size:17px;font-weight:400;color:var(--ink)}
+.ss8 .h-l{font-size:clamp(30px,3.4vw,40px);line-height:1.1;letter-spacing:0}
+
+/* ======================================================================
+   Tương tác khi rê chuột — chỉ transform, chỉ máy có chuột; tắt khi người dùng chọn giảm chuyển động.
+   ====================================================================== */
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+  :is(.g-grid3,.g-grid4)>*,.g-var,.g-shop,.tile,.fc{transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+  :is(.g-grid3,.g-grid4)>*:hover,.g-var:hover,.fc:hover{transform:translate3d(0,-6px,0)}
+  :is(.lc .im,.tile,.g-shop .im,.g-post .g-cover,.g-var-im) img{transition:transform .7s cubic-bezier(.2,.7,.2,1)}
+  :is(.lc,.tile,.g-shop,.g-post,.g-var):hover img{transform:scale(1.04)}
+  .lnk::after{transition:transform .3s cubic-bezier(.2,.7,.2,1)}
+  .lnk:hover::after{transform:translate3d(4px,0,0)}
+  .btn{transition:background-color .2s,color .2s,transform .3s cubic-bezier(.2,.7,.2,1)}
+  .btn:hover{transform:translate3d(0,-2px,0)}
+  .btn:active{transform:scale(.97)}
+  .g-pill{transition:transform .3s,background-color .2s}
+  .g-pill:hover{transform:translate3d(0,-2px,0)}
+  .strip a img,.strip a svg{transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+  .strip a:hover img,.strip a:hover svg{transform:translate3d(0,-5px,0)}
+  :is(.know,.g-ticks) li{transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+  :is(.know,.g-ticks) li:hover{transform:translate3d(6px,0,0)}
+  .foot a{display:inline-block;transition:transform .3s}
+  .foot a:hover{transform:translate3d(3px,0,0)}
+}
+
+/* tiêu đề tách chữ vẫn mang lớp .rv của Codex: từng chữ đã có hiệu ứng riêng → thẻ chứa phải hiện ngay */
+html.m-on .m-split.m-split{opacity:1}
