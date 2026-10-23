@@ -614,6 +614,9 @@ def img_hero_bg():
         im.save(path, "JPEG", quality=72, optimize=True, progressive=True)
     return "img/hero_bg.jpg"
 
+# Thị trường xuất khẩu (Thành chốt 23/10: EU, châu Á, Tây Á, Nam Á, châu Úc, Đông Á, …)
+MARKETS = "".join(f"<li>{m}</li>" for m in ["Europe", "Middle East", "South Asia", "East Asia", "Southeast Asia", "Australia"])
+
 def family_row():
     """Ảnh "cả nhà" kiểu Apple: các máy đứng cạnh nhau, cao theo tỉ lệ chiều cao thật (OTL-30 = 360 px)."""
     out = []
@@ -649,7 +652,7 @@ def page_home():
 <div class="fc"><p class="n">One maker</p><h3>The whole line, from one team.</h3><p>Roasters, destoners, silos and afterburners, designed to work together and installed together.</p><p style="margin-top:14px"><a class="lnk" href="solutions.html">Industrial solutions</a></p></div>
 <div class="fc"><p class="n">Efficiency</p><h3>Up to 30% less energy.</h3><p>Full-circulation airflow on the OTL-60 and OTL-120 recycles exhaust air instead of wasting it.</p><p style="margin-top:14px"><a class="lnk" href="solutions.html#circulation">Full circulation</a></p></div>
 <div class="fc"><p class="n">Support</p><h3>Installed, trained, supported.</h3><p>On-site installation, hands-on training, a technical hotline and remote diagnosis.</p><p style="margin-top:14px"><a class="lnk" href="support.html">Support and service</a></p></div>
-<div class="fc"><p class="n">Built here</p><h3>Made in Vietnam since 2018.</h3><p>Designed and manufactured at our own factory, for roasters at home and in the EU and Asia.</p><p style="margin-top:14px"><a class="lnk" href="about.html">About OTL</a></p></div>
+<div class="fc"><p class="n">Built here</p><h3>Made in Vietnam since 2018.</h3><p>Designed and manufactured at our own factory, for roasters in Vietnam and across Europe, the Middle East, Asia and Australia.</p><p style="margin-top:14px"><a class="lnk" href="about.html">About OTL</a></p></div>
 </div></div></section>
 
 <section class="hero bg-wash pb"><div class="wrap">
@@ -677,7 +680,7 @@ def page_home():
 <p class="lead measure rv" style="margin-top:14px">OTL grew from the O Tesla brand and has designed and manufactured coffee roasters at its own factory since 2018.</p></div>
 <div class="wrap"><div class="stats">
 <div><b>2018</b><span>building roasters since</span></div><div><b>1.2–500<small>kg</small></b><span>per batch</span></div>
-<div><b>4</b><span>product families</span></div><div><b>EU · Asia</b><span>export markets</span></div></div></div>
+<div><b>4</b><span>product families</span></div><div><b>6+</b><span>export regions</span></div></div><ul class="markets rv">{MARKETS}</ul></div>
 <div class="banner rv-f">{im_tag("a168", "p", "Welding a roaster drum at the OTL factory")}</div>
 <div class="wrap"><div class="duo">
 <figure class="rv">{im_tag("a62", "p", "OTL-1.2 in a café")}<figcaption class="cap">OTL-1.2 in a café.</figcaption></figure>
@@ -944,13 +947,13 @@ def page_about():
 <p class="lead measure rv" style="margin-top:18px">OTL Industry Co., Ltd. designs and manufactures coffee roasting machines in Vietnam. The company grew from the O Tesla brand, established in 2018, and became OTL in 2025.</p>
 <div class="stats">
 <div><b>2018</b><span>founded as O Tesla</span></div><div><b>1.2–500<small>kg</small></b><span>batch range</span></div>
-<div><b>8</b><span>standard models, plus custom</span></div><div><b>EU · Asia</b><span>export markets</span></div></div></div></section>
+<div><b>8</b><span>standard models, plus custom</span></div><div><b>6+</b><span>export regions</span></div></div><ul class="markets rv">{MARKETS}</ul></div></section>
 <section class="sec bg-c"><div class="wrap">
 <div class="duo"><figure class="rv">{im_tag("a168", "p", "Welding at the OTL factory")}<figcaption class="cap">Every machine is built at our factory in Binh Duong.</figcaption></figure>
 <figure class="rv">{im_tag("a161", "p", "Roasters in production at the OTL factory")}<figcaption class="cap">Roasters for cafés and industrial roasteries.</figcaption></figure></div>
 <div class="feats three">
 <div class="fc"><p class="n">Build</p><h3>Quality, in steel.</h3><p>Powder-coated steel and temperature and airflow control technology that optimise the roasting process.</p></div>
-<div class="fc"><p class="n">Reach</p><h3>Home and abroad.</h3><p>Serving the domestic market and exporting to the EU, Asia and other markets.</p></div>
+<div class="fc"><p class="n">Reach</p><h3>Home and abroad.</h3><p>Serving Vietnam and exporting to Europe, the Middle East, South Asia, East Asia, Southeast Asia and Australia.</p></div>
 <div class="fc"><p class="n">Future</p><h3>Efficient by intent.</h3><p>Energy-efficient, durable equipment that reduces emissions, with customers at the centre.</p></div>
 </div></div></section>
 {cta("Roast with OTL.", "Explore the lineup or talk to our team about your next roaster.", ("Explore roasters", "roasters.html"), ("Request a quote", "quote.html"), "bg-w")}

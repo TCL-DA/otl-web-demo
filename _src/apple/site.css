@@ -446,3 +446,7 @@ h1,h2,h3,h4,p{margin:0}
 :is([data-theme="dark"],.dk) .hero .shot.photo img{background:none;padding:0;border-radius:var(--r-card)}
 /* màn hẹp / phóng to: nút chat chỉ còn biểu tượng, không đè tiêu đề */
 @media (max-width:834px){.chat-b{width:52px;height:52px;padding:0;justify-content:center}.chat-b span{display:none}}
+/* hàng khu vực xuất khẩu */
+.markets{list-style:none;padding:0;margin:26px 0 0;display:flex;flex-wrap:wrap;gap:10px}
+.markets li{padding:7px 16px;border:1px solid var(--line);border-radius:var(--r-pill);font-size:15px;color:var(--ink)}
+.center .markets,.wrap.center .markets{justify-content:center}
