@@ -127,6 +127,16 @@ def kiem(name, b):
                   &&b.getAttribute('aria-label')==='Switch to light mode';
           b.click();await new Promise(r=>setTimeout(r,200));const back=d.dataset.theme==='light'&&localStorage.getItem('otl-theme')==='light';
           localStorage.removeItem('otl-theme');return ok&&back?'ok':'LOI t0='+t0+' t1='+d.dataset.theme}""")
+    R["chat"] = pg.evaluate("""async()=>{const b=document.querySelector('.chat-b'),p=document.getElementById('chat-p');if(!b)return 'LOI khong co';
+      b.click();await new Promise(r=>setTimeout(r,400));const hs=[...p.querySelectorAll('a')].map(a=>a.href).join(' ');
+      const open=!p.hidden&&/wa\\.me/.test(hs)&&/zalo\\.me/.test(hs)&&/m\\.me/.test(hs)&&b.getAttribute('aria-expanded')==='true';
+      document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'}));await new Promise(r=>setTimeout(r,200));
+      return open&&p.hidden?'ok':'LOI open='+open+' hidden='+p.hidden}""")
+    if pg.query_selector(".short button"):
+        pg.route("**/*youtube-nocookie.com/**", lambda rt: rt.fulfill(status=200, body="<html></html>", content_type="text/html"))
+        R["video"] = pg.evaluate("""async()=>{const b=document.querySelector('.short button');const id=b.dataset.yt;b.scrollIntoView({block:'center'});
+          await new Promise(r=>setTimeout(r,300));b.click();await new Promise(r=>setTimeout(r,600));
+          const f=document.querySelector('.yt-box iframe');return f&&f.src.includes('/embed/'+id)?'ok':'LOI'}""")
     R["loi_trang"] = list(errs)
     ctx.close()
     # ---------- máy tính, giao diện tối (cách A) ----------

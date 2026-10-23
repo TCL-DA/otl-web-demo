@@ -59,6 +59,30 @@
   }
   syncTheme();
 
+  /* Nút chat nổi: mở/đóng bảng WhatsApp · Zalo · Messenger; bấm ra ngoài hoặc Esc thì đóng */
+  var cb = document.querySelector(".chat-b"), cp = document.getElementById("chat-p");
+  if (cb && cp) {
+    var setChat = function (open) {
+      cb.setAttribute("aria-expanded", open); cp.hidden = !open;
+      if (open && window.OTLM && OTLM.anim) OTLM.anim(cp, OTLM.FX.rise(12), 320, 0, "cubic-bezier(.2,.7,.2,1)");
+    };
+    cb.addEventListener("click", function (e) { e.stopPropagation(); setChat(cp.hidden); });
+    document.addEventListener("click", function (e) { if (!cp.hidden && !cp.contains(e.target)) setChat(false); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !cp.hidden) { setChat(false); cb.focus(); } });
+  }
+
+  /* Video Shorts: chỉ nạp YouTube (bản không cookie) khi khách bấm — trang vẫn nhẹ */
+  qa(".short button[data-yt]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var f = document.createElement("iframe");
+      f.src = "https://www.youtube-nocookie.com/embed/" + b.dataset.yt + "?autoplay=1&playsinline=1&rel=0";
+      f.title = b.getAttribute("aria-label").replace("Play video: ", "");
+      f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen"; f.allowFullscreen = true;
+      var box = document.createElement("div"); box.className = "yt-box"; box.appendChild(f);
+      b.replaceWith(box);
+    });
+  });
+
   /* Hỏi giá: quote.html?model=OTL-06 → chọn sẵn model */
   var q = new URLSearchParams(location.search).get("model"), ms = document.getElementById("f-model");
   if (q && ms) qa("option", ms).forEach(function (o) { if (o.value === q) ms.value = q; });

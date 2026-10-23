@@ -354,11 +354,71 @@ def card_img(r):
 WA = "https://wa.me/84936198938"
 WA_SVG = ('<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="#25d366" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/>'
           '<path fill="#fff" d="M16.9 14.3c-.3-.1-1.6-.8-1.8-.9-.3-.1-.4-.1-.6.1l-.8 1c-.2.2-.3.2-.6.1-1.6-.8-2.7-1.5-3.8-3.3-.3-.5.3-.5.8-1.6.1-.2 0-.3 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.3.3-1 1-1 2.3s1 2.7 1.2 2.9c.1.2 2 3.1 4.9 4.3 1.8.8 2.5.8 3.4.7.6-.1 1.6-.7 1.9-1.3.2-.7.2-1.2.2-1.3-.1-.2-.3-.3-.6-.4z"/></svg>')
-WA_BTN = f'<a class="wa" href="{WA}" target="_blank" rel="noopener" aria-label="Chat with OTL on WhatsApp">{WA_SVG}<span>WhatsApp</span></a>'
+# Kênh chat + mạng xã hội (23/10): Facebook / Instagram / TikTok lấy từ chân trang otlpro.com; YouTube trên otlpro.com
+# (@otesla577) đã HỎNG 404 → kênh đúng @otlroaster (giới thiệu ghi "Công ty TNHH Công Nghiệp OTL"); Threads cùng tên Instagram
+# (207 người theo dõi); Zalo theo số hotline; Messenger theo mã trang Facebook.
+ZALO = "https://zalo.me/0936198938"
+MSGR = "https://m.me/61571855303133"
+SOCIAL = [
+    ("Facebook", "https://www.facebook.com/profile.php?id=61571855303133",
+     '<path d="M14 8.5V7c0-.6.4-1 1-1h2V2.5h-2.8C11.6 2.5 10 4.2 10 6.7v1.8H7.5V12H10v9.5h4V12h2.7l.5-3.5z" fill="currentColor"/>'),
+    ("Instagram", "https://www.instagram.com/o_tesla_roaster/",
+     '<rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.2" cy="6.8" r="1.2" fill="currentColor"/>'),
+    ("Threads", "https://www.threads.net/@o_tesla_roaster",
+     '<path d="M16.7 11.3c-.3-2.6-1.9-4-4.4-4-1.6 0-2.9.7-3.7 1.9l1.5 1c.5-.8 1.2-1.1 2.2-1.1 1.2 0 2 .6 2.3 1.8a9 9 0 0 0-2-.2c-2.4 0-4 1.2-4 3 0 1.8 1.5 3 3.4 3 2.5 0 3.8-1.7 4-4.3 1 .5 1.5 1.3 1.5 2.3 0 2-2 3.7-5.2 3.7-3.9 0-6.2-2.5-6.2-6.6S6.4 5 10.3 5h1.5c3.4 0 5.6 1.7 6.1 4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'),
+    ("YouTube", "https://www.youtube.com/@otlroaster",
+     '<rect x="2.5" y="5.5" width="19" height="13" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 9.2v5.6l4.8-2.8z" fill="currentColor"/>'),
+    ("TikTok", "https://www.tiktok.com/@o_tesla_roaster",
+     '<path d="M14 3.5v11.2a3.3 3.3 0 1 1-3.3-3.3M14 3.5c.4 2.4 2 4 4.5 4.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>'),
+]
+ZALO_SVG = ('<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="#0068ff"/>'
+            '<path d="M7.5 8.2h8.2l-7.4 7.6h8" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>')
+MSGR_SVG = ('<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="#0084ff" d="M12 2C6.4 2 2 6.1 2 11.6c0 2.9 1.2 5.4 3.2 7.1V22l3-1.7c1.2.3 2.4.5 3.8.5 5.6 0 10-4.1 10-9.6S17.6 2 12 2z"/>'
+            '<path fill="#fff" d="M6.4 14.3l3-4.7 2.4 1.9 3.3-1.9-3 4.7-2.4-1.9z"/></svg>')
+CHATS = [("WhatsApp", WA, WA_SVG), ("Zalo", ZALO, ZALO_SVG), ("Messenger", MSGR, MSGR_SVG)]
+CHAT_BTN = ('<div class="chat"><div class="chat-p" id="chat-p" hidden><p>Chat with OTL</p>'
+            + "".join(f'<a href="{u}" target="_blank" rel="noopener">{s}<span>{n}</span></a>' for n, u, s in CHATS)
+            + '</div><button class="chat-b" type="button" aria-expanded="false" aria-controls="chat-p">'
+            '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 5.5h16v10H9l-5 4z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>'
+            '<span>Chat with us</span></button></div>')
+FOLLOW = ('<div class="follow"><span>Follow OTL</span>'
+          + "".join(f'<a href="{u}" target="_blank" rel="noopener" aria-label="OTL on {n}"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">{p}</svg></a>'
+                    for n, u, p in SOCIAL) + '</div>')
+
+# Video Shorts của kênh @otlroaster (chọn 5/9, bỏ video quảng cáo cuộc thi + máy đời rất cũ). Bấm mới nạp YouTube.
+SHORTS = [("fkA0S2HNY0E", "Green coffee in the hopper"), ("2vsMH8x4P9U", "Roasting to a saved profile"),
+          ("_slyMbj3dDc", "Small-batch roasters"), ("8lh8zY4CeUo", "Coffee, every day"),
+          ("Syhw4mr3PK0", "Engineers at our factory")]
+
+def short_poster(vid):
+    """Ảnh bìa dọc 9:16 tải từ YouTube (oar2 nếu có, không thì frame0), cắt giữa, lưu img/yt_<mã>.jpg."""
+    path = IMG / f"yt_{vid}.jpg"
+    if not path.exists():
+        import io, urllib.request
+        for n in ("oar2.jpg", "frame0.jpg"):
+            try:
+                data = urllib.request.urlopen(urllib.request.Request(f"https://i.ytimg.com/vi/{vid}/{n}", headers={"User-Agent": "Mozilla/5.0"}), timeout=20).read()
+                break
+            except Exception:
+                data = None
+        im = Image.open(io.BytesIO(data)).convert("RGB")
+        w, h = im.size; tw = round(h * 9 / 16)
+        if tw < w: im = im.crop(((w - tw) // 2, 0, (w - tw) // 2 + tw, h))
+        im.thumbnail((540, 960), Image.LANCZOS); im.save(path, "JPEG", quality=80, optimize=True, progressive=True)
+    return f"img/yt_{vid}.jpg"
+
+def shorts_section(bg="bg-w"):
+    cards = "".join(f'''<figure class="short"><button type="button" data-yt="{v}" aria-label="Play video: {E(t)}">
+<img src="{short_poster(v)}" alt="" loading="lazy" decoding="async"><span class="play" aria-hidden="true"></span></button>
+<figcaption>{E(t)}</figcaption></figure>''' for v, t in SHORTS)
+    return f'''<section class="sec {bg}" id="videos"><div class="wrap rail-head"><h2 class="h-l rv">Watch OTL at work.</h2>
+<a class="lnk rv" href="https://www.youtube.com/@otlroaster/shorts" target="_blank" rel="noopener">More on YouTube</a></div>
+<div class="wrap"><div class="shorts rv">{cards}</div></div></section>'''
 CONTACT = f'''<section class="sec bg-c" id="contact"><div class="wrap contact">
 <div><h2 class="h-xl rv">Talk to OTL.</h2>
 <p class="lead rv" style="margin-top:14px">Questions about a roaster, a quote or service? Leave your details and our team will get back to you.</p>
 <ul class="ct-ways rv"><li><a class="lnk" href="{WA}" target="_blank" rel="noopener">Chat on WhatsApp</a></li>
+<li><a class="lnk" href="{ZALO}" target="_blank" rel="noopener">Chat on Zalo</a></li><li><a class="lnk" href="{MSGR}" target="_blank" rel="noopener">Message us on Facebook</a></li>
 <li><a class="lnk" href="mailto:otlpro.com@gmail.com">otlpro.com@gmail.com</a></li><li><a class="lnk" href="tel:+84936198938">+84 936 198 938</a></li></ul></div>
 <form class="form ct-f rv" data-demo data-ok="Thank you — demo only, nothing was sent." novalidate>
 <div class="full"><label for="h-name">Your name</label><input id="h-name" autocomplete="name"></div>
@@ -380,9 +440,10 @@ def foot():
 <div><h4>Support</h4><ul><li><a href="support.html">Support and service</a></li><li><a href="support.html#contact">Contact</a></li><li><a href="quote.html">Request a quote</a></li></ul></div>
 <div><h4>OTL</h4><ul><li><a href="about.html">About OTL</a></li><li><a href="index.html">Home</a></li><li><a href="../index.html">All design concepts</a></li></ul></div>
 </div>
+{FOLLOW}
 <div class="fine"><span>© 2026 OTL Industry Co., Ltd. All rights reserved.</span><span>otlpro.com — design concept</span></div>
 </div></footer>
-{WA_BTN}<script src="site.js"></script></body></html>'''
+{CHAT_BTN}<script src="site.js"></script></body></html>'''
 
 def cta(title, text, primary=("Request a quote", "quote.html"), secondary=("Compare models", "compare.html"), bg="bg-c"):
     return f'''<section class="sec {bg} cta-band"><div class="wrap">
@@ -496,7 +557,8 @@ def page_home():
 <figure class="rv">{im_tag("a62", "p", "OTL-1.2 in a café")}<figcaption class="cap">OTL-1.2 in a café.</figcaption></figure>
 <figure class="rv">{im_tag("a106", "p", "OTL-15 in a café roastery")}<figcaption class="cap">OTL-15 in a café roastery.</figcaption></figure></div>
 <div class="btns c rv" style="margin:30px 0 110px"><a class="lnk" href="about.html">About OTL</a></div></div></section>
-{CONTACT}
+{shorts_section("bg-c")}
+{CONTACT.replace('class="sec bg-c" id="contact"', 'class="sec bg-w" id="contact"')}
 </main>{foot()}'''
     return head("OTL Roaster — Coffee roasters from 1.2 to 120 kg, built in Vietnam", "OTL designs and builds coffee roasters from 1.2 to 120 kg per batch in Vietnam, with destoners, silos and afterburners to complete the line.") + body
 
@@ -724,7 +786,8 @@ def page_support():
 <div class="addr">
 <div><b>Office</b><p>No. 44, N5 Street, Tan Phuoc Quarter, Tan Binh Ward, Di An City, Binh Duong, Vietnam</p></div>
 <div><b>Factory</b><p>398/33 DT743B, Dong Thanh Hamlet, Tan Dong Hiep Ward, Di An City, Binh Duong, Vietnam</p></div>
-<div><b>Email and phone</b><p>otlpro.com@gmail.com<br>+84 936 198 938</p></div></div></div></section>
+<div><b>Email and phone</b><p>otlpro.com@gmail.com<br>+84 936 198 938</p>
+<p style="margin-top:10px"><a class="lnk" href="{WA}" target="_blank" rel="noopener">WhatsApp</a> &nbsp;<a class="lnk" href="{ZALO}" target="_blank" rel="noopener">Zalo</a> &nbsp;<a class="lnk" href="{MSGR}" target="_blank" rel="noopener">Messenger</a></p></div></div></div></section>
 </main>{foot()}'''
     return head("Support — OTL Roaster", "OTL consulting, installation, training, remote diagnosis and spare parts.") + body
 
