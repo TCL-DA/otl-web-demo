@@ -15,6 +15,9 @@ Làm lại theo góp ý: bỏ kiểu một trang kéo dài, dựng khung nhiều
 - Thiết bị: OD Destoner, AB Afterburner, OTL-Silo.
 - Các trang chung: So sánh 3 model cạnh nhau, Giải pháp, Hỗ trợ, Về OTL, Hỏi giá (điền sẵn model khi bấm từ trang máy).
 
+Có chế độ tối: tự theo cài đặt máy người xem, nút mặt trăng trên menu để đổi tay; trang OTL-30/60/120 luôn nền tối.
+Trang chủ có mục liên hệ nhanh "Talk to OTL." và mọi trang có nút WhatsApp (giống web cũ, trình bày lại kiểu Apple).
+
 Thông số lấy nguyên từ các trang sản phẩm otlpro.com. OTL-60 và OTL-120 chưa có ảnh máy đúng cấu hình liền khối,
 nên tạm dùng sơ đồ tuần hoàn khí vẽ lại (7 điểm đo nhiệt).
 

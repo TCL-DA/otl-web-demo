@@ -79,6 +79,7 @@ def img(key, mode="p"):
 
 def im_tag(key, mode, alt, cls="", lazy=True, k=False):
     src = img(key, mode)
+    cls = (cls + " wm").strip() if key in WHITE else cls
     at = f' class="{cls}"' if cls else ""
     dk = f' data-k="{key}"' if k else ""
     ld = ' loading="lazy"' if lazy else ' fetchpriority="high"'
@@ -161,7 +162,7 @@ ROASTERS = [
          uses=["Large-scale coffee production", "Brands focused on quality and efficiency", "Commercial and specialty roasting"],
          gallery=[("a106", "OTL-15 in a café roastery"), ("a109", "OTL-15 cooling tray"), ("a111", "OTL-15 front"),
                   ("a116", "OTL-15 with touchscreen stand")]),
-    dict(slug="otl-30", name="OTL-30", kind="Industrial roaster", hero="a118", mode="r", wash=False,
+    dict(slug="otl-30", name="OTL-30", kind="Industrial roaster", hero="a118", mode="r", wash=False, dark=True,
          tagline="Industrial output, fully automated.", tag="",
          lead="Automation and efficiency at industrial scale.",
          intro="The OTL-30 handles high volumes with unparalleled consistency. It is the solution for roasteries that "
@@ -175,7 +176,7 @@ ROASTERS = [
          uses=["Large-scale operations", "Demanding roasting schedules", "Production hubs that need scalability"],
          gallery=[("a123", "OTL-30 drum front and control panel"), ("a126", "Brass cooling tray"),
                   ("a121", "Beans dropping into the cooling tray"), ("a125", "Cooling tray agitator")]),
-    dict(slug="otl-60", name="OTL-60", kind="Industrial roasting system", hero="a293", mode="p", wash=False,
+    dict(slug="otl-60", name="OTL-60", kind="Industrial roasting system", hero="a293", mode="p", wash=False, dark=True,
          tagline="Full circulation. Up to 30% less energy.", tag="Full circulation",
          lead="Closed-loop airflow for industrial production.",
          intro="The OTL-60 uses an advanced full-circulation airflow system for efficiency, precision and environmental "
@@ -188,7 +189,7 @@ ROASTERS = [
                    ("Touchscreen and profiles", "Real-time data and programmable profiles for consistent batches.")],
          uses=["Industrial-scale coffee production", "Roasters focused on sustainable practice", "High-quality output at scale"],
          gallery=[]),
-    dict(slug="otl-120", name="OTL-120", kind="Industrial roasting system", hero="a293", mode="p", wash=False,
+    dict(slug="otl-120", name="OTL-120", kind="Industrial roasting system", hero="a293", mode="p", wash=False, dark=True,
          tagline="The full-circulation flagship.", tag="Full circulation",
          lead="Our largest system, on a closed loop.",
          intro="The OTL-120 brings the full-circulation airflow system to 120 kg per batch, engineered for large-scale "
@@ -268,22 +269,33 @@ MOTION = {"preset": {"d": 24, "dur": 850, "ease": "cubic-bezier(.2,.7,.2,1)", "s
                     [".step", "rise", {"d": 24}], [".strip", "rise", {"d": 18}], [".rail", "rise", {"d": 30}],
                     [".grid3 .lc", "rise", {"d": 26}], [".cmp-col", "rise", {"d": 22}], [".uses li", "rise", {"d": 14}], [".sensors li", "rise", {"d": 14}]]}
 
+# chọn giao diện TRƯỚC khi vẽ (không nháy trắng): đã bấm nút thì theo lựa chọn đã lưu, chưa bấm thì theo máy người xem
+THEME_JS = ("<script>(function(){var d=document.documentElement,k='otl-theme',s=null,m=matchMedia('(prefers-color-scheme: dark)');"
+            "try{s=localStorage.getItem(k)}catch(e){}function a(){d.dataset.theme=s||(m.matches?'dark':'light')}a();"
+            "if(m.addEventListener)m.addEventListener('change',function(){if(!s)a()});"
+            "window.OTLTheme={toggle:function(){s=d.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem(k,s)}catch(e){}a();return s}}})()</script>")
+THEME_BTN = ('<button class="theme" type="button" data-theme-toggle aria-label="Switch to dark mode">'
+             '<svg class="moon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>'
+             '<svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">'
+             '<circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>')
+WHITE = {"ref", "c240"}   # máy trắng: nền tối KHÔNG cần tấm sáng phía sau
+
 def head(title, desc, gallery_keys=()):
     imgs = {k: img(k, m) for k, m in gallery_keys}
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-            f'<title>{E(title)}</title><meta name="description" content="{E(desc)}">{FONT}'
+            f'<title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta name="color-scheme" content="light dark">{THEME_JS}{FONT}'
             f'<link rel="stylesheet" href="site.css"><link rel="icon" href="img/icon.png">'
             f'<script>window.IMGS={json.dumps(imgs)}</script><script src="motion.js"></script>'
             f'<script>OTLM.start({json.dumps(MOTION)})</script></head><body>')
 
-def nav(active=""):
+def nav(active="", dk=False):
     def top(href, label, key):
         return f'<a class="top{" on" if key == active else ""}" href="{href}">{label}</a>'
     models = "".join(f'<a href="{r["slug"]}.html">{thumb(r)}<span>{r["name"]}</span></a>' for r in ROASTERS)
     eq = "".join(f'<a href="{e["slug"]}.html">{im_tag(e["hero"], "t", e["name"])}<span>{e["short"]}</span></a>' for e in EQUIP)
     m_models = "".join(f'<a class="sm" href="{r["slug"]}.html">{r["name"]}</a>' for r in ROASTERS)
-    return f'''<header class="gnav"><div class="in">
-<a class="logo" href="index.html" aria-label="OTL Roaster home"><img src="{img_logo()}" alt="OTL Roaster" width="85" height="22"></a>
+    return f'''<header class="gnav{" dk" if dk else ""}"><div class="in">
+<a class="logo" href="index.html" aria-label="OTL Roaster home"><img class="lg-l" src="{img_logo()}" alt="OTL Roaster" width="85" height="22"><img class="lg-d" src="img/logo_dark.png" alt="OTL Roaster" width="85" height="22"></a>
 <ul>
 <li>{top("roasters.html", "Roasters", "roasters")}<div class="fly"><div class="in"><div class="big"><h4>Explore roasters</h4>
 <a href="roasters.html">All roasters</a><a href="compare.html">Compare</a><a href="quote.html">Request a quote</a></div>
@@ -297,12 +309,13 @@ def nav(active=""):
 <li>{top("about.html", "About", "about")}</li>
 </ul>
 <a class="btn btn-f sm cta" href="quote.html">Request a quote</a>
-<button class="burger" type="button" aria-label="Menu" aria-expanded="false"><i></i><i></i></button>
+{THEME_BTN}<button class="burger" type="button" aria-label="Menu" aria-expanded="false"><i></i><i></i></button>
 </div></header>
 <div class="mnav" hidden><button class="mnav-x" type="button" aria-label="Close menu">&times;</button>
 <a href="roasters.html">Roasters</a>{m_models}
 <a href="equipment.html">Equipment</a><a href="solutions.html">Solutions</a><a href="compare.html">Compare</a>
-<a href="support.html">Support</a><a href="about.html">About</a><a href="quote.html">Request a quote</a></div>'''
+<a href="support.html">Support</a><a href="about.html">About</a><a href="quote.html">Request a quote</a>
+<button class="theme-t" type="button" data-theme-toggle>Dark mode</button></div>'''
 
 def img_logo():
     path = IMG / "logo.png"
@@ -317,6 +330,11 @@ def img_logo():
                 if a_ and min(r_, g_, b_) > 150:
                     px[x, y] = (61, 67, 77, a_)
         im.thumbnail((400, 66), Image.LANCZOS); im.save(path, optimize=True)
+        dk_ = im.copy(); pd = dk_.load()   # bản cho nền tối: chữ sáng #E8E8ED
+        for y in range(dk_.height):
+            for x in range(int(dk_.height * 1.15), dk_.width):
+                if pd[x, y][3]: pd[x, y] = (232, 232, 237, pd[x, y][3])
+        dk_.save(IMG / "logo_dark.png", optimize=True)
         ic = _cut(Image.open(_src("a1"))); ic.thumbnail((180, 180), Image.LANCZOS); ic.save(IMG / "icon.png", optimize=True)
     return "img/logo.png"
 
@@ -330,6 +348,25 @@ def hero_img(r, lazy=False):
 
 def card_img(r):
     return SYS_ICON.replace('width="114" height="76"', 'width="300" height="200"') if r.get("system") else im_tag(r["hero"], r["mode"], r["name"])
+
+# Liên hệ nhanh + WhatsApp: có trên otlpro.com hiện tại (form đè lên ảnh nền + nút WhatsApp nổi) — giữ chức năng,
+# trình bày lại kiểu Apple: form là một mục riêng nền sạch; nút WhatsApp viên thuốc viền mảnh, không bóng.
+WA = "https://wa.me/84936198938"
+WA_SVG = ('<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="#25d366" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/>'
+          '<path fill="#fff" d="M16.9 14.3c-.3-.1-1.6-.8-1.8-.9-.3-.1-.4-.1-.6.1l-.8 1c-.2.2-.3.2-.6.1-1.6-.8-2.7-1.5-3.8-3.3-.3-.5.3-.5.8-1.6.1-.2 0-.3 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.3.3-1 1-1 2.3s1 2.7 1.2 2.9c.1.2 2 3.1 4.9 4.3 1.8.8 2.5.8 3.4.7.6-.1 1.6-.7 1.9-1.3.2-.7.2-1.2.2-1.3-.1-.2-.3-.3-.6-.4z"/></svg>')
+WA_BTN = f'<a class="wa" href="{WA}" target="_blank" rel="noopener" aria-label="Chat with OTL on WhatsApp">{WA_SVG}<span>WhatsApp</span></a>'
+CONTACT = f'''<section class="sec bg-c" id="contact"><div class="wrap contact">
+<div><h2 class="h-xl rv">Talk to OTL.</h2>
+<p class="lead rv" style="margin-top:14px">Questions about a roaster, a quote or service? Leave your details and our team will get back to you.</p>
+<ul class="ct-ways rv"><li><a class="lnk" href="{WA}" target="_blank" rel="noopener">Chat on WhatsApp</a></li>
+<li><a class="lnk" href="mailto:otlpro.com@gmail.com">otlpro.com@gmail.com</a></li><li><a class="lnk" href="tel:+84936198938">+84 936 198 938</a></li></ul></div>
+<form class="form ct-f rv" data-demo data-ok="Thank you — demo only, nothing was sent." novalidate>
+<div class="full"><label for="h-name">Your name</label><input id="h-name" autocomplete="name"></div>
+<div><label for="h-mail">Email address *</label><input id="h-mail" type="email" required autocomplete="email"></div>
+<div><label for="h-phone">Phone number *</label><input id="h-phone" type="tel" required autocomplete="tel"></div>
+<div class="full"><label for="h-msg">Your message *</label><textarea id="h-msg" required></textarea></div>
+<div class="btns"><button class="btn btn-f" type="submit">Send message</button><a class="lnk" href="quote.html">Request a full quote</a></div></form>
+</div></section>'''
 
 def foot():
     rl = "".join(f'<li><a href="{r["slug"]}.html">{r["name"]}</a></li>' for r in ROASTERS)
@@ -345,7 +382,7 @@ def foot():
 </div>
 <div class="fine"><span>© 2026 OTL Industry Co., Ltd. All rights reserved.</span><span>otlpro.com — design concept</span></div>
 </div></footer>
-<script src="site.js"></script></body></html>'''
+{WA_BTN}<script src="site.js"></script></body></html>'''
 
 def cta(title, text, primary=("Request a quote", "quote.html"), secondary=("Compare models", "compare.html"), bg="bg-c"):
     return f'''<section class="sec {bg} cta-band"><div class="wrap">
@@ -402,10 +439,10 @@ def page_home():
 <div class="btns c rv" style="margin-top:30px"><a class="lnk" href="roasters.html">Explore all roasters</a><a class="lnk" href="compare.html">Compare models</a></div></section>
 
 <div class="tiles">
-<div class="tile"><h2 class="h-l">OTL-30</h2><p class="sub">{thirty["tagline"]}</p>
+<div class="tile dk"><h2 class="h-l">OTL-30</h2><p class="sub">{thirty["tagline"]}</p>
 <div class="btns"><a class="btn btn-f sm" href="otl-30.html">Learn more</a><a class="btn btn-o sm" href="quote.html?model=OTL-30">Quote</a></div>
 <div class="art">{im_tag(thirty["hero"], "r", "OTL-30")}</div></div>
-<div class="tile"><h2 class="h-l">OTL-60 · OTL-120</h2><p class="sub">Full circulation. Up to 30% less energy.</p>
+<div class="tile dk"><h2 class="h-l">OTL-60 · OTL-120</h2><p class="sub">Full circulation. Up to 30% less energy.</p>
 <div class="btns"><a class="btn btn-f sm" href="otl-60.html">OTL-60</a><a class="btn btn-o sm" href="otl-120.html">OTL-120</a></div>
 <div class="art dg">{CIRC}</div></div>
 <div class="tile"><h2 class="h-l">Equipment</h2><p class="sub">Destoner. Afterburner. Silo.</p>
@@ -421,7 +458,7 @@ def page_home():
 <p class="lead measure rv" style="margin-top:14px">OTL has designed and manufactured coffee roasters since 2018, from 1.2 kg to 120 kg per batch, for customers at home and export to the EU and Asia.</p>
 <div class="btns c rv" style="margin-top:20px"><a class="lnk" href="about.html">About OTL</a></div></div>
 <div class="banner rv-f">{im_tag("a168", "p", "Welding a roaster drum at the OTL factory")}</div></section>
-{cta("Find the right roaster.", "Tell us your batch size and daily output. We will recommend a configuration.")}
+{CONTACT}
 </main>{foot()}'''
     return head("OTL Roaster — Coffee roasters from 1.2 to 120 kg", "Modern coffee roasters, destoners, afterburners and silos, designed and built by OTL in Vietnam.") + body
 
@@ -485,11 +522,12 @@ def page_model(i):
 <h2 class="h-l rv">Take a closer look.</h2>{gallery(r["gallery"])}</div></section>'''
         shot = f'<div class="shot rv-up">{hero_img(r)}</div>'
         mini_g = '<a href="#gallery">Gallery</a>'
-    body = f'''{nav("roasters")}
-<div class="mini"><div class="in"><span class="nm">{r["name"]}</span>
+    dk = " dk" if r.get("dark") else ""
+    body = f'''{nav("roasters", bool(dk))}
+<div class="mini{dk}"><div class="in"><span class="nm">{r["name"]}</span>
 <nav aria-label="{r["name"]}"><a href="#overview">Overview</a><a href="#highlights">Highlights</a>{mini_g}<a href="#specs">Tech specs</a></nav>
 <a class="btn btn-f sm" href="quote.html?model={r["name"]}">Request a quote</a></div></div>
-<main>
+<main class="{dk.strip()}">
 <section class="hero {"bg-wash" if r["wash"] else "bg-c"}{" pb" if r.get("system") else ""}" id="overview"><div class="wrap">
 <p class="eyebrow rv">{r["kind"]}</p><h1 class="h-hero rv">{r["name"]}</h1><p class="sub rv">{r["tagline"]}</p>
 <div class="btns rv"><a class="btn btn-f" href="quote.html?model={r["name"]}">Request a quote</a><a class="btn btn-o" href="compare.html?a={r["slug"]}">Compare</a></div>
@@ -601,14 +639,14 @@ def page_solutions():
     sens = "".join(f"<li><b><i>{n + 1}</i>{a}</b><span>{b}</span></li>" for n, (a, b) in enumerate(SENSORS))
     body = f'''{nav("solutions")}
 <main>
-<section class="sec bg-w center" style="padding-top:72px"><div class="wrap">
+<section class="sec bg-w center dk" style="padding-top:72px"><div class="wrap">
 <p class="eyebrow rv">Industrial solutions</p><h1 class="h-hero rv" style="margin-top:8px">From green bean<br>to clean air.</h1>
 <p class="lead measure rv" style="margin-top:18px">Roasters, destoners, silos and afterburners designed to work together, sized for your output and installed by one team.</p>
 <div class="btns c rv" style="margin-top:26px"><a class="btn btn-f" href="quote.html">Plan your line</a><a class="btn btn-o" href="roasters.html">Explore roasters</a></div></div></section>
 
 <section class="sec bg-c"><div class="wrap"><h2 class="h-l rv">One line, five steps.</h2><div class="steps">{st}</div></div></section>
 
-<section class="sec bg-w" id="circulation"><div class="wrap">
+<section class="sec bg-w dk" id="circulation"><div class="wrap">
 <p class="eyebrow rv">OTL-60 · OTL-120</p><h2 class="h-xl rv" style="margin-top:6px">Full circulation, explained.</h2>
 <p class="lead rv" style="margin-top:16px;max-width:760px">A closed-loop airflow system recycles exhaust air to minimise energy waste and distribute heat evenly. OTL rates it at up to 30% lower energy consumption.</p>
 <div class="diagram rv-f" style="margin-top:40px">{CIRC}</div>

@@ -17,7 +17,19 @@
   --r-card:18px; --r-img:12px; --r-pill:980px;
   --font:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --wrap:1080px;
+  --card:#ffffff;        /* thẻ đặt trên nền --canvas */
+  --plate:#e4e5e8;       /* tấm sáng sau máy ĐEN khi nền tối — máy đen trên nền tối sẽ mất viền */
 }
+/* ---------- NỀN TỐI (chủ máy duyệt 23/10/2026, ngoại lệ luật "không mảng đen"): xám than, không đen tuyền ----------
+   Cách A: cả web — [data-theme=dark] trên <html>, tự theo máy người xem, có nút đổi tay.
+   Cách B: chỉ mục máy công nghiệp — class .dk trên từng mục (đổi biến màu cục bộ). */
+:root[data-theme="dark"],.dk{
+  --canvas:#24262b;--white:#1b1d21;--wash:#2a2d33;--pebble:#3a3d44;--card:#2c2f35;
+  --ink:#e8e8ed;--ink2:#a1a1a6;--ink3:#8e8e93;--line:#3a3d44;
+  --red-ink:#f87171;--link:#4ba3ff;--sig:#5cc4ff;
+}
+:root[data-theme="dark"]{color-scheme:dark}
+.dk{color:var(--ink)}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
 body{margin:0;background:var(--white);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.47;
@@ -309,3 +321,37 @@ h1,h2,h3,h4,p{margin:0}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 .hero .shot.photo .diagram{width:100%}
 .tile .art:not(.ph):not(.dg){padding-bottom:40px;height:370px}
+
+/* ---------- nền tối: thẻ, tấm sáng sau máy đen, logo, nút đổi giao diện ---------- */
+:is([data-theme="dark"],.dk) :is(.lc,.fc,.step),:is([data-theme="dark"],.dk) .bg-w :is(.lc,.fc,.step){background:var(--card)}
+:is([data-theme="dark"],.dk) :is(.lc .im,.strip .ic,.fly .models,.tile .art:not(.ph),.cmp .im,.step .im) img:not(.wm){background:var(--plate);border-radius:14px;padding:10px}
+:is([data-theme="dark"],.dk) .strip .ic img:not(.wm){padding:5px;border-radius:10px}
+:is([data-theme="dark"],.dk) .hero .shot img:not(.wm){background:var(--plate);border-radius:24px;padding:26px 30px}
+:is([data-theme="dark"],.dk) .diagram{background:var(--plate)}
+:is([data-theme="dark"],.dk) .btn-f:hover{background:#b91c1c}
+:is([data-theme="dark"],.dk) .btn-o:hover{background:var(--red);border-color:var(--red);color:#fff}
+:is([data-theme="dark"],.dk) .cmp select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23e8e8ed' stroke-width='1.6'/%3E%3C/svg%3E")}
+.logo .lg-d{display:none}
+:is([data-theme="dark"],.dk) .logo .lg-l{display:none}
+:is([data-theme="dark"],.dk) .logo .lg-d{display:block}
+.theme{flex:none;width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.theme:hover{background:var(--pebble)}
+.theme svg{width:18px;height:18px}
+.theme .sun{display:none}
+[data-theme="dark"] .theme .sun{display:block}
+[data-theme="dark"] .theme .moon{display:none}
+.mnav .theme-t{display:block;margin-top:22px;padding:10px 18px;border:1px solid var(--line);border-radius:var(--r-pill);background:transparent;font-size:17px;cursor:pointer}
+@media (max-width:834px){.theme{margin-left:auto}.burger{margin-left:0}}
+:is([data-theme="dark"],.dk) .tile .art.dg .circ{background:var(--plate);border-radius:18px;padding:16px 18px}
+
+/* ---------- liên hệ nhanh (trang chủ) + nút WhatsApp nổi ---------- */
+.contact{display:grid;grid-template-columns:1fr 1.15fr;gap:64px;align-items:start}
+.ct-ways{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:12px}
+.form.ct-f{margin-top:0;background:var(--card);border-radius:var(--r-card);padding:34px 32px}
+.form.ct-f input,.form.ct-f textarea{background:var(--canvas)}
+.wa{position:fixed;right:22px;bottom:22px;z-index:70;display:flex;align-items:center;gap:8px;height:48px;padding:0 18px 0 14px;
+  border-radius:var(--r-pill);background:var(--white);border:1px solid var(--line);color:var(--ink);font-size:15px;font-weight:600;transition:background-color .2s}
+.wa:hover{background:var(--canvas)}
+.foot{padding-bottom:84px}
+@media (max-width:834px){.contact{grid-template-columns:1fr;gap:34px}.form.ct-f{padding:26px 20px}}
+@media (max-width:480px){.wa{width:52px;height:52px;padding:0;justify-content:center;right:16px;bottom:16px}.wa span{display:none}.wa svg{width:26px;height:26px}}

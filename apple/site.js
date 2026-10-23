@@ -42,6 +42,23 @@
     });
   }
 
+  /* Nút đổi sáng/tối: lưu lựa chọn (OTLTheme trong <head>), nhãn nút theo giao diện đang dùng */
+  function syncTheme() {
+    var dark = document.documentElement.dataset.theme === "dark";
+    qa("[data-theme-toggle]").forEach(function (b) {
+      b.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+      if (b.classList.contains("theme-t")) b.textContent = dark ? "Light mode" : "Dark mode";
+    });
+  }
+  qa("[data-theme-toggle]").forEach(function (b) {
+    b.addEventListener("click", function () { if (window.OTLTheme) { OTLTheme.toggle(); syncTheme(); } });
+  });
+  if (window.matchMedia) {
+    var mq = matchMedia("(prefers-color-scheme: dark)");
+    if (mq.addEventListener) mq.addEventListener("change", function () { setTimeout(syncTheme, 0); });
+  }
+  syncTheme();
+
   /* Hỏi giá: quote.html?model=OTL-06 → chọn sẵn model */
   var q = new URLSearchParams(location.search).get("model"), ms = document.getElementById("f-model");
   if (q && ms) qa("option", ms).forEach(function (o) { if (o.value === q) ms.value = q; });

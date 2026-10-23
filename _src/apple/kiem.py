@@ -45,6 +45,20 @@ MENU_CHE = """async()=>{const out=[];const ids=[...new Set([...document.querySel
     const top=t.getBoundingClientRect().top;if(top<bar-2)out.push(h+' bi che '+Math.round(bar-top)+'px')}
   document.documentElement.style.scrollBehavior='';scrollTo(0,0);return out}"""
 
+# tương phản chữ/nền < 3:1 (chữ thường) — nền lấy từ phần tử tổ tiên gần nhất có màu nền; bỏ qua chữ nằm trên ảnh
+TUONG_PHAN = """()=>{const out=[];const rgb=s=>{const m=s.match(/[\\d.]+/g);return m?m.map(Number):[0,0,0,0]};
+  const L=c=>{const f=v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)};return .2126*f(c[0])+.7152*f(c[1])+.0722*f(c[2])};
+  document.querySelectorAll('body *').forEach(el=>{
+    if(el.closest('[hidden],.mnav,.fly,svg')) return;
+    const txt=[...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim().length>1); if(!txt) return;
+    const r=el.getBoundingClientRect(); if(!r.width||!r.height) return;
+    const cs=getComputedStyle(el); if(parseFloat(cs.opacity)<.99) return;
+    let bg=null;for(let a=el;a;a=a.parentElement){const c=rgb(getComputedStyle(a).backgroundColor);if(c[3]===undefined||c[3]>.5){bg=c;break}}
+    if(!bg) bg=[255,255,255];const fg=rgb(cs.color);
+    const l1=L(fg),l2=L(bg),k=(Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05);
+    if(k<3) out.push(el.tagName+' «'+el.textContent.trim().slice(0,26)+'» '+k.toFixed(2)+':1');
+  });return out.slice(0,10)}"""
+
 def lot(pg, step=420, pause=50):
     h = pg.evaluate("document.documentElement.scrollHeight")
     y = 0
@@ -102,10 +116,29 @@ def kiem(name, b):
           f.requestSubmit();await new Promise(r=>setTimeout(r,500));const bad=f.querySelectorAll('.m-bad').length;
           f.querySelectorAll('[required]').forEach(i=>{i.value=i.type==='email'?'a@b.co':'Test'});f.requestSubmit();await new Promise(r=>setTimeout(r,700));
           return (bad>0&&b.textContent!==t0&&!f.querySelectorAll('.m-bad').length)?'ok':'LOI bad='+bad}""")
+    R["tuong_phan_sang"] = pg.evaluate(TUONG_PHAN)
     if name == "quote":
         pg.goto(url + "?model=OTL-30", wait_until="networkidle")
         R["dien_san_model"] = "ok" if pg.evaluate("document.getElementById('f-model').value") == "OTL-30" else "LOI"
+    if name == "index":
+        R["nut_toi"] = pg.evaluate("""async()=>{const d=document.documentElement,b=document.querySelector('.gnav .theme');scrollTo(0,0);
+          const t0=d.dataset.theme,bg0=getComputedStyle(document.body).backgroundColor;b.click();await new Promise(r=>setTimeout(r,200));
+          const ok=t0==='light'&&d.dataset.theme==='dark'&&localStorage.getItem('otl-theme')==='dark'&&getComputedStyle(document.body).backgroundColor!==bg0
+                  &&b.getAttribute('aria-label')==='Switch to light mode';
+          b.click();await new Promise(r=>setTimeout(r,200));const back=d.dataset.theme==='light'&&localStorage.getItem('otl-theme')==='light';
+          localStorage.removeItem('otl-theme');return ok&&back?'ok':'LOI t0='+t0+' t1='+d.dataset.theme}""")
     R["loi_trang"] = list(errs)
+    ctx.close()
+    # ---------- máy tính, giao diện tối (cách A) ----------
+    ctx = b.new_context(viewport={"width": 1440, "height": 900}, color_scheme="dark")
+    pg = ctx.new_page(); e3 = []
+    pg.on("pageerror", lambda e: e3.append("js: " + str(e)[:160])); pg.on("console", lambda m: m.type == "error" and e3.append("console: " + m.text[:160]))
+    pg.goto(url, wait_until="networkidle"); pg.wait_for_timeout(500)
+    R["toi_tu_bat"] = "ok" if pg.evaluate("document.documentElement.dataset.theme") == "dark" else "LOI"
+    lot(pg)
+    R["tuong_phan_toi"] = pg.evaluate(TUONG_PHAN)
+    R["ket_an_toi"] = pg.evaluate(STUCK)
+    R["loi_trang"] += e3
     ctx.close()
     # ---------- điện thoại ----------
     ctx = b.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
@@ -122,7 +155,8 @@ def kiem(name, b):
     R["ket_an_390"] = pg.evaluate(STUCK)
     R["loi_trang"] += e2
     ctx.close()
-    loi = [k for k in ("loi_trang", "anh_hong", "lien_ket_hong", "ket_an", "ket_an_390", "sat_mep_390", "menu_che") if R.get(k)]
+    loi = [k for k in ("loi_trang", "anh_hong", "lien_ket_hong", "ket_an", "ket_an_390", "ket_an_toi", "sat_mep_390", "menu_che",
+                       "tuong_phan_sang", "tuong_phan_toi") if R.get(k)]
     loi += [k for k in ("tran_1440", "tran_390") if R.get(k)]
     loi += [k for k, v in R.items() if isinstance(v, str) and v.startswith("LOI")]
     if R.get("task>50ms"): loi.append("task>50ms")
