@@ -724,7 +724,8 @@ OTLM.start({
     empty.hidden=cards.some(function(c){return !c.hidden});
   }
   q.addEventListener('input',function(){apply(true)});
-  btns.forEach(function(b){b.addEventListener('click',function(){apply(false)})});
+  /* chạy SAU bộ lọc chung để đọc đúng danh mục đang chọn và áp thêm từ khoá tìm */
+  btns.forEach(function(b){b.addEventListener('click',function(){setTimeout(function(){apply(false)},0)})});
 })();
 </script>
 </body>
