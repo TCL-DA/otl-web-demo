@@ -80,6 +80,7 @@ def kiem(name, b):
     pg.on("pageerror", lambda e: errs.append("js: " + str(e)[:160]))
     pg.on("requestfailed", lambda r: errs.append("request: " + r.url[:110]))
     pg.goto(url, wait_until="networkidle"); pg.wait_for_timeout(800)
+    R["ngon_ngu"] = "ok" if pg.locator("html").get_attribute("lang") == "vi" else "LOI lang khong phai vi"
     hrefs = pg.evaluate("[...document.querySelectorAll('a[href]')].map(a=>a.getAttribute('href'))")
     R["lien_ket_hong"] = sorted({h for h in hrefs if not re.match(r"(https?:|mailto:|tel:|#)", h)
                                  and not (SITE / h.split("?")[0].split("#")[0]).exists()})
@@ -114,8 +115,11 @@ def kiem(name, b):
     if pg.query_selector("form[data-demo]"):
         R["bieu_mau"] = pg.evaluate("""async()=>{const f=document.querySelector('form[data-demo]');const b=f.querySelector('button[type=submit]');const t0=b.textContent;
           f.requestSubmit();await new Promise(r=>setTimeout(r,500));const bad=f.querySelectorAll('.m-bad').length;
-          f.querySelectorAll('[required]').forEach(i=>{i.value=i.type==='email'?'a@b.co':'Test'});f.requestSubmit();await new Promise(r=>setTimeout(r,700));
-          return (bad>0&&b.textContent!==t0&&!f.querySelectorAll('.m-bad').length)?'ok':'LOI bad='+bad}""")
+          f.querySelectorAll('[required]').forEach(i=>{i.value=i.type==='email'?'sai-email':'Test'});
+          f.requestSubmit();await new Promise(r=>setTimeout(r,200));
+          const email=f.querySelector('[type=email]');const blocked=email.classList.contains('m-bad')&&email.getAttribute('aria-invalid')==='true'&&b.textContent===t0;
+          email.value='a@b.co';f.requestSubmit();await new Promise(r=>setTimeout(r,700));
+          return (bad>0&&blocked&&b.textContent!==t0&&!f.querySelectorAll('.m-bad').length)?'ok':'LOI bad='+bad+' email='+blocked}""")
     R["tuong_phan_sang"] = pg.evaluate(TUONG_PHAN)
     if name == "quote":
         pg.goto(url + "?model=OTL-30", wait_until="networkidle")
@@ -124,7 +128,7 @@ def kiem(name, b):
         R["nut_toi"] = pg.evaluate("""async()=>{const d=document.documentElement,b=document.querySelector('.gnav .theme');scrollTo(0,0);
           const t0=d.dataset.theme,bg0=getComputedStyle(document.body).backgroundColor;b.click();await new Promise(r=>setTimeout(r,200));
           const ok=t0==='light'&&d.dataset.theme==='dark'&&localStorage.getItem('otl-theme')==='dark'&&getComputedStyle(document.body).backgroundColor!==bg0
-                  &&b.getAttribute('aria-label')==='Switch to light mode';
+                  &&b.getAttribute('aria-label')==='Chuyển sang giao diện sáng';
           b.click();await new Promise(r=>setTimeout(r,200));const back=d.dataset.theme==='light'&&localStorage.getItem('otl-theme')==='light';
           localStorage.removeItem('otl-theme');return ok&&back?'ok':'LOI t0='+t0+' t1='+d.dataset.theme}""")
     R["chat"] = pg.evaluate("""async()=>{const b=document.querySelector('.chat-b'),p=document.getElementById('chat-p');if(!b)return 'LOI khong co';
@@ -140,8 +144,8 @@ def kiem(name, b):
         R["copy"] = pg.evaluate("""async()=>{const bs=[...document.querySelectorAll('.copy')].filter(b=>b.getClientRects().length);if(!bs.length)return 'khong co nut hien';
           const b=bs[0];b.scrollIntoView({block:'center'});await new Promise(r=>setTimeout(r,200));b.click();await new Promise(r=>setTimeout(r,300));
           let clip='';try{clip=await navigator.clipboard.readText()}catch(e){clip='(khong doc duoc)'}
-          const ok=b.classList.contains('ok')&&/Copied/.test(b.textContent)&&(clip==='(khong doc duoc)'||clip===b.dataset.copy);
-          await new Promise(r=>setTimeout(r,2200));const back=!b.classList.contains('ok')&&/Copy$/.test(b.textContent.trim());
+          const ok=b.classList.contains('ok')&&/Đã chép/.test(b.textContent)&&(clip==='(khong doc duoc)'||clip===b.dataset.copy);
+          await new Promise(r=>setTimeout(r,2200));const back=!b.classList.contains('ok')&&/Sao chép/.test(b.textContent.trim())&&!/Đã chép/.test(b.textContent);
           return ok&&back?'ok':'LOI ok='+ok+' back='+back+' clip='+clip.slice(0,30)}""")
     if pg.query_selector(".short button"):
         pg.route("**/*youtube-nocookie.com/**", lambda rt: rt.fulfill(status=200, body="<html></html>", content_type="text/html"))
@@ -199,3 +203,4 @@ if __name__ == "__main__":
     (Path(__file__).parent / "kiem_ket_qua.json").write_text(json.dumps(tong, ensure_ascii=False, indent=1), encoding="utf-8")
     dat = sum(1 for r in tong.values() if r["KET_QUA"] == "DAT")
     print(f"\n{dat}/{len(tong)} trang DAT")
+    sys.exit(0 if dat == len(tong) else 1)

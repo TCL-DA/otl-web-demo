@@ -230,22 +230,26 @@
     qa("form[data-demo]").forEach(function (f) {
       f.addEventListener("submit", function (e) {
         e.preventDefault();
-        var bad = qa("[required]", f).filter(function (i) { return !i.value.trim(); });
+        /* Kiểm cả định dạng email và ô trống; novalidate để tự hiển thị lỗi đồng nhất. */
+        var bad = qa("input, textarea, select", f).filter(function (i) {
+          return (i.required && !i.value.trim()) || !i.validity.valid;
+        });
         if (bad.length) {
           bad.forEach(function (i) {
             i.classList.add("m-bad");
-            i.animate([{ transform: "translateX(0)" }, { transform: "translateX(-8px)" }, { transform: "translateX(7px)" }, { transform: "translateX(-4px)" }, { transform: "translateX(0)" }], { duration: 420, easing: "ease-out" });
+            i.setAttribute("aria-invalid", "true");
+            i.animate([{ transform: "translateX(0)" }, { transform: "translateX(-8px)" }, { transform: "translateX(7px)" }, { transform: "translateX(-4px)" }, { transform: "translateX(0)" }], { duration: reduce ? 1 : 420, easing: "ease-out" });
             M.n++;
           });
           bad[0].focus();
           return;
         }
-        qa(".m-bad", f).forEach(function (i) { i.classList.remove("m-bad"); });
+        qa(".m-bad", f).forEach(function (i) { i.classList.remove("m-bad"); i.removeAttribute("aria-invalid"); });
         var b = f.querySelector("button[type=submit]");
-        b.textContent = f.dataset.ok || "Sent — demo only";
+        b.textContent = f.dataset.ok || "Bản demo — thông tin chưa được gửi.";
         anim(b, FX.pop(), 520, 0, P.ease);
       });
-      qa("[required]", f).forEach(function (i) { i.addEventListener("input", function () { i.classList.remove("m-bad"); }); });
+      qa("input, textarea, select", f).forEach(function (i) { i.addEventListener("input", function () { i.classList.remove("m-bad"); i.removeAttribute("aria-invalid"); }); });
     });
   }
 

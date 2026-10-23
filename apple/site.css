@@ -450,3 +450,34 @@ h1,h2,h3,h4,p{margin:0}
 .markets{list-style:none;padding:0;margin:26px 0 0;display:flex;flex-wrap:wrap;gap:10px}
 .markets li{padding:7px 16px;border:1px solid var(--line);border-radius:var(--r-pill);font-size:15px;color:var(--ink)}
 .center .markets,.wrap.center .markets{justify-content:center}
+
+/* ---------- Về OTL: câu chuyện, lộ trình, quy trình, kiến thức ---------- */
+.story{display:grid;grid-template-columns:1fr 1.3fr;gap:56px;align-items:start}
+.story-t p{font-size:19px;line-height:1.55;color:var(--ink2);margin-bottom:16px}
+.story-t b{color:var(--ink);font-weight:600}
+.timeline{list-style:none;padding:0;margin:56px 0 0;position:relative}
+.timeline::before{content:"";position:absolute;left:132px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.tl-item{display:grid;grid-template-columns:110px 1fr;gap:44px;padding:0 0 36px;position:relative}
+.tl-item::before{content:"";position:absolute;left:126px;top:6px;width:14px;height:14px;border-radius:50%;background:var(--white);border:2px solid var(--ink3)}
+.tl-y{font-size:22px;font-weight:600;letter-spacing:-.015em;text-align:right;line-height:1.2}
+.tl-k{font-size:12px;font-weight:600;color:var(--red-ink)}
+.tl-b h3{font-size:22px;font-weight:600;letter-spacing:-.012em;margin-top:2px}
+.tl-b p:last-child{color:var(--ink2);margin-top:6px;max-width:680px}
+.tl-now::before{background:var(--red);border-color:var(--red)}
+.tl-now .tl-y{color:var(--red-ink)}
+.tl-next::before{border-style:dashed}
+.tl-next .tl-b h3,.tl-next .tl-y{color:var(--ink2)}
+.steps.six{grid-template-columns:repeat(6,1fr)}
+.steps.six .step{padding-top:26px}
+.know{list-style:none;padding:0;margin:20px 0 0;display:grid;grid-template-columns:repeat(2,1fr);gap:14px 30px}
+.know li{border-top:1px solid var(--line);padding-top:12px}
+@media (max-width:1068px){.steps.six{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:834px){
+  .story{grid-template-columns:1fr;gap:20px}
+  .timeline::before{left:7px}
+  .tl-item{grid-template-columns:1fr;gap:4px;padding-left:34px}
+  .tl-item::before{left:1px}
+  .tl-y{text-align:left;font-size:18px}
+  .steps.six{grid-template-columns:1fr 1fr}
+  .know{grid-template-columns:1fr}
+}

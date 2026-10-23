@@ -46,8 +46,8 @@
   function syncTheme() {
     var dark = document.documentElement.dataset.theme === "dark";
     qa("[data-theme-toggle]").forEach(function (b) {
-      b.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
-      if (b.classList.contains("theme-t")) b.textContent = dark ? "Light mode" : "Dark mode";
+      b.setAttribute("aria-label", dark ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối");
+      if (b.classList.contains("theme-t")) b.textContent = dark ? "Giao diện sáng" : "Giao diện tối";
     });
   }
   qa("[data-theme-toggle]").forEach(function (b) {
@@ -87,7 +87,7 @@
     b.addEventListener("click", function () {
       var f = document.createElement("iframe");
       f.src = "https://www.youtube-nocookie.com/embed/" + b.dataset.yt + "?autoplay=1&playsinline=1&rel=0";
-      f.title = b.getAttribute("aria-label").replace("Play video: ", "");
+      f.title = b.getAttribute("aria-label").replace("Xem video: ", "");
       f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen"; f.allowFullscreen = true;
       var box = document.createElement("div"); box.className = "yt-box"; box.appendChild(f);
       b.replaceWith(box);
@@ -114,10 +114,10 @@
     b.addEventListener("click", function (e) {
       e.preventDefault(); e.stopPropagation();
       copyText(b.dataset.copy).then(function () {
-        clearTimeout(timer); b.classList.add("ok"); lab.textContent = "Copied";
+        clearTimeout(timer); b.classList.add("ok"); lab.textContent = "Đã chép";
         if (window.OTLM && OTLM.anim) OTLM.anim(b, OTLM.FX.pop(), 260, 0, "cubic-bezier(.2,.7,.2,1)");
         timer = setTimeout(function () { b.classList.remove("ok"); lab.textContent = t0; }, 1800);
-      }, function () { lab.textContent = "Press Ctrl+C"; });
+      }, function () { lab.textContent = "Nhấn Ctrl+C"; });
     });
   });
 
@@ -125,7 +125,7 @@
   qa(".v3d").forEach(function (box) {
     var b = box.querySelector("button");
     b.addEventListener("click", function () {
-      b.disabled = true; b.firstChild.textContent = "Loading 3D… ";
+      b.disabled = true; b.firstChild.textContent = "Đang tải 3D… ";
       if (!customElements.get("model-viewer")) {
         var s = document.createElement("script"); s.type = "module";
         s.src = "https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js";
@@ -134,13 +134,13 @@
       customElements.whenDefined("model-viewer").then(function () {
         var mv = document.createElement("model-viewer");
         mv.setAttribute("src", box.dataset.glb);
-        mv.setAttribute("alt", box.dataset.name + " 3D model");
+        mv.setAttribute("alt", box.dataset.name + " — mô hình 3D");
         ["camera-controls", "auto-rotate"].forEach(function (a) { mv.setAttribute(a, ""); });
         mv.setAttribute("touch-action", "pan-y");
         mv.setAttribute("environment-image", "neutral");
         mv.setAttribute("camera-orbit", "35deg 75deg auto");
         mv.addEventListener("load", function () { box.classList.add("on"); box.querySelector("img").remove(); b.remove(); });
-        mv.addEventListener("error", function () { b.disabled = false; b.firstChild.textContent = "Try again "; });
+        mv.addEventListener("error", function () { b.disabled = false; b.firstChild.textContent = "Thử lại "; });
         box.appendChild(mv);
       });
     });
