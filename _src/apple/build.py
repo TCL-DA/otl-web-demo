@@ -212,7 +212,7 @@ ROASTERS = [
          gallery=[]),
     dict(slug="otl-120", name="OTL-120", kind="Industrial roasting system", hero="a293", mode="p", wash=False, dark=True,
          tagline="The full-circulation flagship.", tag="Full circulation",
-         lead="Our largest system, on a closed loop.",
+         lead="120 kg per batch, on a closed loop.",
          intro="The OTL-120 brings the full-circulation airflow system to 120 kg per batch, engineered for large-scale "
                "production with superior control over the roasting process.",
          batch="60–120", kgh="240–480", burner="350", elec="19.5", power="3-phase 380–400 V · 50/60 Hz",
@@ -370,19 +370,20 @@ def img_logo():
     if not path.exists():
         IMG.mkdir(parents=True, exist_ok=True)
         im = _cut(Image.open(_src("a2")))
-        # chữ "OTL ROASTER" trong logo gốc màu trắng (cho nền tối) → tô xám than, giữ nguyên biểu tượng đỏ-xanh bên trái
-        px, ic_w = im.load(), int(im.height * 1.15)
-        for y in range(im.height):
-            for x in range(ic_w, im.width):
-                r_, g_, b_, a_ = px[x, y]
-                if a_ and min(r_, g_, b_) > 150:
-                    px[x, y] = (61, 67, 77, a_)
-        im.thumbnail((400, 66), Image.LANCZOS); im.save(path, optimize=True)
-        dk_ = im.copy(); pd = dk_.load()   # bản cho nền tối: chữ sáng #E8E8ED
-        for y in range(dk_.height):
-            for x in range(int(dk_.height * 1.15), dk_.width):
-                if pd[x, y][3]: pd[x, y] = (232, 232, 237, pd[x, y][3])
-        dk_.save(IMG / "logo_dark.png", optimize=True)
+        # chữ "OTL ROASTER" trong logo gốc màu trắng (cho nền tối) → đổi màu chữ, giữ nguyên biểu tượng đỏ-xanh bên trái.
+        # Ranh giới = cột trong suốt hoàn toàn ĐẦU TIÊN sau biểu tượng (đoán theo tỉ lệ cũ cắt lẹm mép phải biểu tượng).
+        al = im.getchannel("A")
+        filled = [any(al.getpixel((x, y)) > 8 for y in range(im.height)) for x in range(im.width)]
+        ic_w = next(x for x in range(1, im.width) if filled[x - 1] and not filled[x])
+        def recolor(src, rgb):
+            out = src.copy(); px = out.load()
+            for y in range(out.height):
+                for x in range(ic_w, out.width):
+                    if px[x, y][3]: px[x, y] = rgb + (px[x, y][3],)
+            out.thumbnail((400, 66), Image.LANCZOS)
+            return out
+        recolor(im, (61, 67, 77)).save(path, optimize=True)                # nền sáng: chữ xám than
+        recolor(im, (232, 232, 237)).save(IMG / "logo_dark.png", optimize=True)   # nền tối: chữ sáng
         ic = _cut(Image.open(_src("a1"))); ic.thumbnail((180, 180), Image.LANCZOS); ic.save(IMG / "icon.png", optimize=True)
     return "img/logo.png"
 
@@ -537,8 +538,11 @@ def strip(items, active=""):
         out.append(f'<a href="{it["href"]}"><div class="ic">{it["icon"]}</div><span>{it["label"]}{em}</span></a>')
     return f'<div class="strip" role="list">{"".join(out)}</div>'
 
+CUSTOM = "Custom system, up to 500 kg"   # trên 120 kg: chưa có model + thông số công khai → chỉ "làm theo yêu cầu", không bịa số
+
 def roaster_items():
-    return [dict(href=f'{r["slug"]}.html', icon=thumb(r), label=r["name"], tag=r["tag"]) for r in ROASTERS]
+    return [dict(href=f'{r["slug"]}.html', icon=thumb(r), label=r["name"], tag=r["tag"]) for r in ROASTERS] + \
+           [dict(href=f"quote.html?model={CUSTOM}", icon=SYS_ICON, label="Up to 500 kg", tag="Built to order")]
 
 def equip_items():
     return [dict(href=f'{e["slug"]}.html', icon=im_tag(e["hero"], "t", e["name"]), label=e["short"]) for e in EQUIP]
@@ -549,6 +553,12 @@ def lc(r):
 <h3>{r["name"]}</h3><p>{r["tagline"]}</p>
 <dl><div><dt>Batch</dt><dd>{r["batch"]} kg</dd></div><div><dt>Output</dt><dd>{r["kgh"]} kg/h</dd></div></dl>
 <div class="btns"><a class="btn btn-f sm" href="{r["slug"]}.html">Learn more</a><a class="lnk" href="quote.html?model={r["name"]}">Quote</a></div></article>'''
+
+def lc_custom():
+    return f'''<article class="lc"><a class="im" href="quote.html?model={CUSTOM}" aria-label="Custom systems up to 500 kg">{SYS_ICON.replace('width="114" height="76"', 'width="300" height="200"')}</a>
+<div class="tag">Built to order</div><h3>Up to 500 kg</h3><p>Larger industrial systems, engineered for your plant.</p>
+<dl><div><dt>Batch</dt><dd>Up to 500 kg</dd></div><div><dt>Output</dt><dd>On request</dd></div></dl>
+<div class="btns"><a class="btn btn-f sm" href="quote.html?model={CUSTOM}">Request a quote</a><a class="lnk" href="support.html#contact">Talk to us</a></div></article>'''
 
 def lc_eq(e):
     return f'''<article class="lc"><a class="im" href="{e["slug"]}.html" aria-label="{e["name"]}">{im_tag(e["hero"], e["mode"], e["name"])}</a>
@@ -586,13 +596,13 @@ def page_home():
 <main>
 <section class="hero bg-wash pb home-hero"><div class="wrap">
 <p class="eyebrow rv">OTL Roaster</p>
-<h1 class="h-hero rv">Coffee roasters,<br>from 1.2 to 120&nbsp;kg.</h1>
+<h1 class="h-hero rv">Coffee roasters,<br>from 1.2 to 500&nbsp;kg.</h1>
 <p class="sub rv">Designed and built in Vietnam, with everything around the roaster.</p>
 <div class="btns rv"><a class="btn btn-f" href="roasters.html">Explore roasters</a><a class="btn btn-o" href="quote.html">Request a quote</a></div>
 </div>{family_row()}</section>
 
 <section class="sec bg-w center tight"><div class="wrap">
-<h2 class="h-l rv">Find your size.</h2><p class="lead rv" style="margin-top:12px">Eight roasters, plus the destoner, afterburner and silo to complete the line.</p>
+<h2 class="h-l rv">Find your size.</h2><p class="lead rv" style="margin-top:12px">Eight standard roasters, larger systems up to 500 kg built to order, and the equipment to complete the line.</p>
 </div><div class="wide" style="margin-top:40px">{strip(roaster_items() + equip_items())}</div>
 <div class="btns c rv" style="margin-top:28px"><a class="lnk" href="roasters.html">Explore all roasters</a><a class="lnk" href="compare.html">Compare models</a></div></section>
 
@@ -629,7 +639,7 @@ def page_home():
 <h2 class="h-xl rv">Built in Vietnam.<br>Roasting worldwide.</h2>
 <p class="lead measure rv" style="margin-top:14px">OTL grew from the O Tesla brand and has designed and manufactured coffee roasters at its own factory since 2018.</p></div>
 <div class="wrap"><div class="stats">
-<div><b>2018</b><span>building roasters since</span></div><div><b>1.2–120<small>kg</small></b><span>per batch, eight models</span></div>
+<div><b>2018</b><span>building roasters since</span></div><div><b>1.2–500<small>kg</small></b><span>per batch</span></div>
 <div><b>4</b><span>product families</span></div><div><b>EU · Asia</b><span>export markets</span></div></div></div>
 <div class="banner rv-f">{im_tag("a168", "p", "Welding a roaster drum at the OTL factory")}</div>
 <div class="wrap"><div class="duo">
@@ -639,10 +649,10 @@ def page_home():
 {shorts_section("bg-c")}
 {CONTACT.replace('class="sec bg-c" id="contact"', 'class="sec bg-w" id="contact"')}
 </main>{foot()}'''
-    return head("OTL Roaster — Coffee roasters from 1.2 to 120 kg, built in Vietnam", "OTL designs and builds coffee roasters from 1.2 to 120 kg per batch in Vietnam, with destoners, silos and afterburners to complete the line.") + body
+    return head("OTL Roaster — Coffee roasters from 1.2 to 500 kg, built in Vietnam", "OTL designs and builds coffee roasters from 1.2 to 500 kg per batch in Vietnam, with destoners, silos and afterburners to complete the line.") + body
 
 def page_roasters():
-    rail = "".join(lc(r) for r in ROASTERS)
+    rail = "".join(lc(r) for r in ROASTERS) + lc_custom()
     eq = "".join(lc_eq(e) for e in EQUIP)
     body = f'''{nav("roasters")}
 <main>
@@ -669,7 +679,7 @@ def page_roasters():
 <div class="wrap grid3">{eq}</div></section>
 {cta("Not sure which size?", "Our team can help you match a roaster to your batch size, output and space.", ("Request a quote", "quote.html"), ("Talk to support", "support.html"), "bg-w")}
 </main>{foot()}'''
-    return head("Roasters — OTL Roaster", "OTL coffee roasters from 1.2 kg to 120 kg per batch. Explore the lineup and compare models.") + body
+    return head("Roasters — OTL Roaster", "OTL coffee roasters from 1.2 kg to 500 kg per batch. Explore the lineup and compare models.") + body
 
 COMPARE_ICON = ('<svg viewBox="0 0 80 76" width="80" height="76" fill="none" stroke="#86868b" stroke-width="2" aria-hidden="true">'
                 '<rect x="8" y="18" width="26" height="44" rx="4"/><rect x="46" y="18" width="26" height="44" rx="4"/>'
@@ -894,8 +904,8 @@ def page_about():
 <p class="eyebrow rv">About OTL</p><h1 class="h-hero rv" style="margin-top:8px">From O Tesla to OTL.</h1>
 <p class="lead measure rv" style="margin-top:18px">OTL Industry Co., Ltd. designs and manufactures coffee roasting machines in Vietnam. The company grew from the O Tesla brand, established in 2018, and became OTL in 2025.</p>
 <div class="stats">
-<div><b>2018</b><span>founded as O Tesla</span></div><div><b>1.2–120<small>kg</small></b><span>batch range</span></div>
-<div><b>8</b><span>roaster models</span></div><div><b>EU · Asia</b><span>export markets</span></div></div></div></section>
+<div><b>2018</b><span>founded as O Tesla</span></div><div><b>1.2–500<small>kg</small></b><span>batch range</span></div>
+<div><b>8</b><span>standard models, plus custom</span></div><div><b>EU · Asia</b><span>export markets</span></div></div></div></section>
 <section class="sec bg-c"><div class="wrap">
 <div class="duo"><figure class="rv">{im_tag("a168", "p", "Welding at the OTL factory")}<figcaption class="cap">Every machine is built at our factory in Binh Duong.</figcaption></figure>
 <figure class="rv">{im_tag("a161", "p", "Roasters in production at the OTL factory")}<figcaption class="cap">Roasters for cafés and industrial roasteries.</figcaption></figure></div>
@@ -910,6 +920,7 @@ def page_about():
 
 def page_quote():
     opts = "".join(f'<option value="{r["name"]}">{r["name"]} — {r["batch"]} kg</option>' for r in ROASTERS)
+    opts += f'<option value="{CUSTOM}">{CUSTOM}</option>'
     opts += "".join(f'<option value="{e["name"]}">{e["name"]}</option>' for e in EQUIP)
     body = f'''{nav()}
 <main><section class="sec bg-c" style="padding-top:72px"><div class="wrap" style="max-width:820px">
