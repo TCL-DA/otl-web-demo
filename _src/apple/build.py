@@ -424,19 +424,51 @@ def gallery(items):
             f'<div class="pg-t">{th}</div></div>')
 
 # ======================================================================= trang
+FAMILY = [  # (chỉ số trong ROASTERS, chiều cao thật mm theo otlpro.com, ẩn trên điện thoại?)
+    (0, 950, False), (1, 1715, False), (2, 2020, False), (3, 2000, True), (4, 1900, True), (5, 2400, False)]
+
+def family_row():
+    """Ảnh "cả nhà" kiểu Apple: các máy đứng cạnh nhau, cao theo tỉ lệ chiều cao thật (OTL-30 = 360 px)."""
+    out = []
+    for i, mm, hide in FAMILY:
+        r = ROASTERS[i]
+        hm = ' class="hm"' if hide else ""
+        out.append(f'<figure{hm} style="--h:{round(360 * mm / 2400)}">'
+                   f'<a href="{r["slug"]}.html">{im_tag(r["hero"], r["mode"], r["name"], lazy=False)}</a>'
+                   f'<figcaption>{r["name"]}</figcaption></figure>')
+    return f'<div class="family rv-up">{"".join(out)}</div>'
+
 def page_home():
+    """Thứ tự thông điệp (23/10): 1 OTL là ai + làm gì, có con số · 2 cả dòng máy · 3 lý do chọn OTL · máy nổi bật ·
+    4 bằng chứng (từ 2018, xuất EU/châu Á, xưởng thật) · 5 hỗ trợ · 6 liên hệ. Chỉ dùng thông tin có trên otlpro.com."""
     six = ROASTERS[2]; thirty = ROASTERS[5]
     body = f'''{nav()}
 <main>
-<section class="hero bg-wash"><div class="wrap">
-<p class="eyebrow rv">Coffee roaster</p><h1 class="h-hero rv">OTL-06</h1><p class="sub rv">{six["tagline"]}</p>
-<div class="btns rv"><a class="btn btn-f" href="otl-06.html">Learn more</a><a class="btn btn-o" href="quote.html?model=OTL-06">Request a quote</a></div>
-<div class="shot rv-up">{hero_img(six)}</div></div></section>
+<section class="hero bg-wash pb"><div class="wrap">
+<p class="eyebrow rv">OTL Roaster</p>
+<h1 class="h-hero rv">Coffee roasters,<br>from 1.2 to 120&nbsp;kg.</h1>
+<p class="sub rv">Designed and built in Vietnam, with everything around the roaster.</p>
+<div class="btns rv"><a class="btn btn-f" href="roasters.html">Explore roasters</a><a class="btn btn-o" href="quote.html">Request a quote</a></div>
+</div>{family_row()}</section>
 
-<section class="sec bg-w center"><div class="wrap">
-<h2 class="h-l rv">Roasters for every batch.</h2><p class="lead rv" style="margin-top:12px">From 1.2 kg sample roasting to 120 kg full-circulation systems.</p>
-</div><div class="wide" style="margin-top:44px">{strip(roaster_items() + equip_items())}</div>
-<div class="btns c rv" style="margin-top:30px"><a class="lnk" href="roasters.html">Explore all roasters</a><a class="lnk" href="compare.html">Compare models</a></div></section>
+<section class="sec bg-w center tight"><div class="wrap">
+<h2 class="h-l rv">Find your size.</h2><p class="lead rv" style="margin-top:12px">Eight roasters, plus the destoner, afterburner and silo to complete the line.</p>
+</div><div class="wide" style="margin-top:40px">{strip(roaster_items() + equip_items())}</div>
+<div class="btns c rv" style="margin-top:28px"><a class="lnk" href="roasters.html">Explore all roasters</a><a class="lnk" href="compare.html">Compare models</a></div></section>
+
+<section class="sec bg-c"><div class="wrap">
+<h2 class="h-xl rv center">Why OTL.</h2>
+<div class="feats">
+<div class="fc"><p class="n">One maker</p><h3>The whole line, from one team.</h3><p>Roasters, destoners, silos and afterburners, designed to work together and installed together.</p><p style="margin-top:14px"><a class="lnk" href="solutions.html">Industrial solutions</a></p></div>
+<div class="fc"><p class="n">Efficiency</p><h3>Up to 30% less energy.</h3><p>Full-circulation airflow on the OTL-60 and OTL-120 recycles exhaust air instead of wasting it.</p><p style="margin-top:14px"><a class="lnk" href="solutions.html#circulation">Full circulation</a></p></div>
+<div class="fc"><p class="n">Support</p><h3>Installed, trained, supported.</h3><p>On-site installation, hands-on training, a technical hotline and remote diagnosis.</p><p style="margin-top:14px"><a class="lnk" href="support.html">Support and service</a></p></div>
+<div class="fc"><p class="n">Built here</p><h3>Made in Vietnam since 2018.</h3><p>Designed and manufactured at our own factory, for roasters at home and in the EU and Asia.</p><p style="margin-top:14px"><a class="lnk" href="about.html">About OTL</a></p></div>
+</div></div></section>
+
+<section class="hero bg-wash pb"><div class="wrap">
+<p class="eyebrow rv">Flagship</p><h2 class="h-hero rv">OTL-06</h2><p class="sub rv">{six["tagline"]}</p>
+<div class="btns rv"><a class="btn btn-f" href="otl-06.html">Learn more</a><a class="btn btn-o" href="quote.html?model=OTL-06">Request a quote</a></div>
+<div class="shot rv-up">{hero_img(six, lazy=True)}</div></div></section>
 
 <div class="tiles">
 <div class="tile dk"><h2 class="h-l">OTL-30</h2><p class="sub">{thirty["tagline"]}</p>
@@ -453,14 +485,20 @@ def page_home():
 <div class="art ph">{im_tag("a175", "p", "OTL technician setting up a roaster")}</div></div>
 </div>
 
-<section class="sec bg-w center" style="padding-bottom:0"><div class="wrap">
-<h2 class="h-xl rv">Designed and built in Vietnam.</h2>
-<p class="lead measure rv" style="margin-top:14px">OTL has designed and manufactured coffee roasters since 2018, from 1.2 kg to 120 kg per batch, for customers at home and export to the EU and Asia.</p>
-<div class="btns c rv" style="margin-top:20px"><a class="lnk" href="about.html">About OTL</a></div></div>
-<div class="banner rv-f">{im_tag("a168", "p", "Welding a roaster drum at the OTL factory")}</div></section>
+<section class="sec bg-w" style="padding-bottom:0"><div class="wrap center">
+<h2 class="h-xl rv">Built in Vietnam.<br>Roasting worldwide.</h2>
+<p class="lead measure rv" style="margin-top:14px">OTL grew from the O Tesla brand and has designed and manufactured coffee roasters at its own factory since 2018.</p></div>
+<div class="wrap"><div class="stats">
+<div><b>2018</b><span>building roasters since</span></div><div><b>1.2–120<small>kg</small></b><span>per batch, eight models</span></div>
+<div><b>4</b><span>product families</span></div><div><b>EU · Asia</b><span>export markets</span></div></div></div>
+<div class="banner rv-f">{im_tag("a168", "p", "Welding a roaster drum at the OTL factory")}</div>
+<div class="wrap"><div class="duo">
+<figure class="rv">{im_tag("a62", "p", "OTL-1.2 in a café")}<figcaption class="cap">OTL-1.2 in a café.</figcaption></figure>
+<figure class="rv">{im_tag("a106", "p", "OTL-15 in a café roastery")}<figcaption class="cap">OTL-15 in a café roastery.</figcaption></figure></div>
+<div class="btns c rv" style="margin:30px 0 110px"><a class="lnk" href="about.html">About OTL</a></div></div></section>
 {CONTACT}
 </main>{foot()}'''
-    return head("OTL Roaster — Coffee roasters from 1.2 to 120 kg", "Modern coffee roasters, destoners, afterburners and silos, designed and built by OTL in Vietnam.") + body
+    return head("OTL Roaster — Coffee roasters from 1.2 to 120 kg, built in Vietnam", "OTL designs and builds coffee roasters from 1.2 to 120 kg per batch in Vietnam, with destoners, silos and afterburners to complete the line.") + body
 
 def page_roasters():
     rail = "".join(lc(r) for r in ROASTERS)

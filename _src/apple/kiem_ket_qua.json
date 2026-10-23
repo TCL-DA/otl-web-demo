@@ -90,7 +90,7 @@
  "index": {
   "lien_ket_hong": [],
   "task>50ms": 0,
-  "task_max_ms": 2.7,
+  "task_max_ms": 2.3,
   "ket_an": [],
   "anh_hong": [],
   "tran_1440": false,
@@ -272,7 +272,7 @@
  "roasters": {
   "lien_ket_hong": [],
   "task>50ms": 0,
-  "task_max_ms": 1.6,
+  "task_max_ms": 1.7,
   "ket_an": [],
   "anh_hong": [],
   "tran_1440": false,
