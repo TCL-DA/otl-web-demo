@@ -121,6 +121,31 @@
     });
   });
 
+  /* Xem 3D: bấm mới tải model-viewer (Google) + file .glb đã nén — trang không nặng thêm khi chưa bấm */
+  qa(".v3d").forEach(function (box) {
+    var b = box.querySelector("button");
+    b.addEventListener("click", function () {
+      b.disabled = true; b.firstChild.textContent = "Loading 3D… ";
+      if (!customElements.get("model-viewer")) {
+        var s = document.createElement("script"); s.type = "module";
+        s.src = "https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js";
+        document.head.appendChild(s);
+      }
+      customElements.whenDefined("model-viewer").then(function () {
+        var mv = document.createElement("model-viewer");
+        mv.setAttribute("src", box.dataset.glb);
+        mv.setAttribute("alt", box.dataset.name + " 3D model");
+        ["camera-controls", "auto-rotate"].forEach(function (a) { mv.setAttribute(a, ""); });
+        mv.setAttribute("touch-action", "pan-y");
+        mv.setAttribute("environment-image", "neutral");
+        mv.setAttribute("camera-orbit", "35deg 75deg auto");
+        mv.addEventListener("load", function () { box.classList.add("on"); box.querySelector("img").remove(); b.remove(); });
+        mv.addEventListener("error", function () { b.disabled = false; b.firstChild.textContent = "Try again "; });
+        box.appendChild(mv);
+      });
+    });
+  });
+
   /* Hỏi giá: quote.html?model=OTL-06 → chọn sẵn model */
   var q = new URLSearchParams(location.search).get("model"), ms = document.getElementById("f-model");
   if (q && ms) qa("option", ms).forEach(function (o) { if (o.value === q) ms.value = q; });

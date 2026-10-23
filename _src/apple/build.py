@@ -242,6 +242,8 @@ EQUIP = [
          table=(("Model", "Capacity", "Power", "Supply"),
                 [("OD-05", "5–10 kg/batch", "0.75 kW", "1-phase 220 V"), ("OD-15", "15–20 kg/batch", "1.5 kW", "1-phase 220 V"),
                  ("OD-30", "30–40 kg/batch", "2.2 kW", "3-phase 380 V"), ("OD-60", "For 60 kg roasters", "On request", "On request")]),
+         # mô hình 3D (máy chủ: DESTONER-OD-30-V1.glb 15,6 MB → nén Draco 1,9 MB bằng gltf-transform)
+         model3d=("3d/od-30-v1.glb", "3d/od-30-v1_poster.jpg", "OD-30 V1", "1.9 MB"),
          features=[("High-efficiency separation", "Air suction removes stones and heavy impurities precisely."),
                    ("Adjustable airflow", "Tune the airflow for beans of different density."),
                    ("Simple controls", "Intuitive controls for easy operation."),
@@ -756,6 +758,13 @@ def page_equip(e):
     others = [x for x in EQUIP if x is not e][:3]
     gal = (f'<section class="sec bg-w" id="gallery"><div class="wrap"><h2 class="h-l rv">Take a closer look.</h2>{gallery(e["gallery"])}</div></section>'
            if e["gallery"] else "")
+    v3d = ""
+    if e.get("model3d"):
+        glb, poster, nm, mb = e["model3d"]
+        v3d = f'''<section class="sec bg-w" id="view3d"><div class="wrap center">
+<h2 class="h-l rv">See it in 3D.</h2><p class="lead rv" style="margin-top:12px">Turn the {nm} with your finger or mouse. Pinch or scroll to zoom.</p>
+<div class="v3d rv" data-glb="{glb}" data-name="{nm}"><img src="{poster}" alt="{nm}, 3D preview" loading="lazy">
+<button class="btn btn-f" type="button">View in 3D <small>{mb}</small></button></div></div></section>'''
     tbl = ""
     if e.get("table"):
         hd, rows = e["table"]
@@ -776,6 +785,7 @@ def page_equip(e):
 <div class="stats">{st}</div></div></section>
 <section class="sec bg-c"><div class="wrap"><h2 class="h-l rv">Key features.</h2><div class="feats">{feats}</div></div></section>
 {gal}
+{v3d}
 <section class="sec bg-c" id="specs"><div class="wrap"><h2 class="h-l rv">Tech specs.</h2><dl class="specs rv">{sp}</dl>{tbl}</div></section>
 <section class="sec bg-w"><div class="wrap rail-head"><h2 class="h-l rv">Complete the line.</h2><a class="lnk rv" href="roasters.html">Roasters</a></div>
 <div class="wrap grid3">{"".join(lc_eq(x) for x in others)}</div></section>
@@ -923,6 +933,7 @@ def main():
     for f in ("site.css", "site.js"):
         shutil.copy(HERE / f, OUT / f)
     shutil.copy(HERE / "motion.js", OUT / "motion.js")
+    shutil.copytree(HERE / "3d", OUT / "3d", dirs_exist_ok=True)   # mô hình 3D đã nén
     pages = {"index": page_home(), "roasters": page_roasters(), "equipment": page_equip_hub(), "compare": page_compare(),
              "solutions": page_solutions(), "support": page_support(), "about": page_about(), "quote": page_quote()}
     for i, r in enumerate(ROASTERS):
