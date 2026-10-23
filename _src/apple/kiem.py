@@ -128,8 +128,8 @@ def kiem(name, b):
         R["so_sanh"] = pg.evaluate("""async()=>{const s=document.getElementById('cmp2');s.value='otl-120';s.dispatchEvent(new Event('change'));
           await new Promise(r=>setTimeout(r,300));const c=s.closest('.cmp-col');
           return c.querySelector('[data-f=name]').textContent==='OTL-120'&&c.querySelector('[data-k=batch]').textContent==='60–120 kg'?'ok':'LOI'}""")
-    if pg.query_selector("form[data-demo]"):
-        R["bieu_mau"] = pg.evaluate("""async()=>{const f=document.querySelector('form[data-demo]');const b=f.querySelector('button[type=submit]');const t0=b.textContent;
+    if pg.query_selector("form[data-request]"):
+        R["bieu_mau"] = pg.evaluate("""async()=>{const f=document.querySelector('form[data-request]');const b=f.querySelector('button[type=submit]');const t0=b.textContent;
           f.requestSubmit();await new Promise(r=>setTimeout(r,500));const bad=f.querySelectorAll('.m-bad').length;
           f.querySelectorAll('[required]').forEach(i=>{i.value=i.type==='email'?'sai-email':'Test'});
           f.requestSubmit();await new Promise(r=>setTimeout(r,200));

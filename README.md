@@ -19,7 +19,8 @@ Bản gallery theo tham chiếu Apple mới người dùng gửi ngày 23/10/202
 đã lưu và có nút đổi tay. Logo giữ màu OTL; nút chính dùng xanh, ảnh máy lớn trên nền đen, media 28 px,
 thanh điều hướng sản phẩm nằm trong khung bo 20 px. Các sân khấu sản phẩm vẫn tối khi xem bản sáng.
 Ảnh nguồn giữ nguyên hình dáng và màu máy, không dựng thêm ánh sáng hay chi tiết phần cứng giả.
-Trang chủ có mục “Trò chuyện với OTL”, 5 video Shorts; mọi trang có bảng chat WhatsApp / Zalo / Messenger,
+Trang chủ có mục chọn máy theo khối lượng mẻ, ba câu chuyện chi tiết bằng ảnh thật, mục “Trò chuyện với OTL”,
+5 video Shorts; mọi trang có bảng chat WhatsApp / Zalo / Messenger,
 liên kết mạng xã hội và nút sao chép thông tin liên hệ. Trên máy tính, Zalo hiện mã QR của số hotline;
 chưa có đường dẫn Zalo OA được xác nhận.
 
@@ -47,7 +48,14 @@ không thay thế kiểm phát video thực tế. Bản tiếng Anh trước khi
 Hồi quy tương tác: `python -u -X utf8 _src/apple/kiem_tuong_tac.py`. Kiểm menu mở/đóng nhanh, giữ và trả focus
 bàn phím, khóa nền, gallery đổi nhanh đúng ảnh/mô tả/trạng thái chọn, giảm chuyển động và phục hồi sau lỗi CDN 3D.
 Lượt thử lại 3D tải thư viện và mô hình thật qua máy chủ localhost. Biểu mẫu có thông báo lỗi tiếng Việt
-theo từng trường, luôn nêu rõ chưa gửi dữ liệu; cần nối dịch vụ tiếp nhận trước khi dùng chính thức.
+theo từng trường, tạo bản yêu cầu để khách kiểm tra rồi mở ứng dụng email hoặc sao chép sang kênh nhắn tin.
+Không tự gửi dữ liệu, không có API tiếp nhận phía máy chủ. Bản xem trước bị xóa khi khách sửa thông tin để
+tránh gửi nhầm nội dung cũ. Cần cấu hình dịch vụ tiếp nhận nếu muốn gửi trực tiếp hoàn toàn trên website.
+
+Bộ gợi ý chọn mẫu nhỏ nhất có dải khối lượng mẻ bao phủ yêu cầu; trên 120 đến 500 kg chuyển sang cấu hình
+riêng. Loại hình sử dụng chỉ giúp diễn giải, không được dùng để tự suy ra thông số máy. Gợi ý không thay thế
+tư vấn cấu hình, năng suất còn phụ thuộc hạt và hồ sơ rang. Hồi quy bao phủ các mốc khối lượng, giá trị sai,
+email mã hóa đúng nội dung, văn bản nhập an toàn và sao chép yêu cầu.
 Rà tương phản riêng: `python -u -X utf8 _src/apple/kiem.py --contrast` (20 trang × hai giao diện;
 chữ thường 4,5:1, chữ lớn 3:1). Đây là kiểm tra tự động theo màu nền gần nhất, không thay thế
 kiểm tra thủ công chữ trên ảnh hoặc đánh giá khả năng tiếp cận đầy đủ.
@@ -66,4 +74,5 @@ Mỗi bản là một trang chủ demo dựng theo một phong cách thiết k�
 
 Nguồn dựng: `_src/1trang/`. Mỗi file HTML tự chứa ảnh.
 
-Đây là bản demo để chọn hướng thiết kế, không phải web chính thức. Biểu mẫu chỉ kiểm tra ô bắt buộc, không gửi đi đâu.
+Đây là bản demo để chọn hướng thiết kế, không phải web chính thức. Biểu mẫu của năm bản một trang cũ chỉ kiểm
+tra dữ liệu nhập; bản nhiều trang có luồng chuẩn bị nội dung email như mô tả phía trên.

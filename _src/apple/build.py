@@ -11,7 +11,7 @@ OTL-60/120 dùng ảnh thật theo ngoại lệ người dùng đã duyệt ngà
 
 Chạy:  python build.py        (ảnh đã xử lý được giữ lại, chỉ dựng lại HTML; xoá apple/img để xử lý ảnh lại)
 """
-import csv, html, json, shutil
+import csv, html, json, re, shutil
 from pathlib import Path
 from PIL import Image, ImageChops, ImageDraw
 
@@ -238,7 +238,7 @@ ROASTERS = [
          gallery=[("h60", "OTL-60 và tủ điều khiển"), ("g60a", "Khay làm nguội và trống OTL-60"),
                   ("g60b", "Bảng điều khiển OTL-60"), ("g60c", "OTL-60 lắp tại xưởng rang")]),
     dict(slug="otl-120", name="OTL-120", kind="Hệ thống rang công nghiệp", hero="h120", mode="p", wash=False, dark=True,
-         tagline="Tuần hoàn khí toàn phần, quy mô lớn nhất.", tag="Tuần hoàn khí",
+         tagline="Tuần hoàn khí toàn phần. Mẻ rang tới 120 kg.", tag="Tuần hoàn khí",
          lead="120 kg mỗi mẻ với hệ thống khí tuần hoàn khép kín.",
          intro="OTL-120 đưa hệ thống tuần hoàn khí toàn phần lên 120 kg mỗi mẻ, thiết kế cho sản xuất quy mô lớn với khả năng "
                "kiểm soát quá trình rang vượt trội.",
@@ -532,13 +532,13 @@ def shorts_section(bg="bg-w"):
 ALL_BTN = copy_btn(ALL_INFO, "toàn bộ thông tin liên hệ", "Sao chép toàn bộ thông tin liên hệ")
 CONTACT = f'''<section class="sec bg-c" id="contact"><div class="wrap contact">
 <div><h2 class="h-xl rv">Trò chuyện với OTL.</h2>
-<p class="lead rv" style="margin-top:14px">Cần tư vấn máy rang, báo giá hay dịch vụ? Để lại thông tin, đội ngũ OTL sẽ liên hệ lại với bạn.</p>
+<p class="lead rv" style="margin-top:14px">Cần tư vấn máy rang, báo giá hay dịch vụ? Chuẩn bị yêu cầu bên cạnh hoặc nhắn trực tiếp với đội ngũ OTL.</p>
 <ul class="ct-ways rv"><li><a class="lnk" href="{WA}" target="_blank" rel="noopener">Nhắn qua WhatsApp</a></li>
 <li><a class="lnk" href="{ZALO}" target="_blank" rel="noopener" data-zalo>Nhắn qua Zalo</a></li><li><a class="lnk" href="{MSGR}" target="_blank" rel="noopener">Nhắn qua Facebook</a></li>
 <li><a class="lnk" href="mailto:{EMAIL}">{EMAIL}</a>{copy_btn(EMAIL, "email")}</li>
 <li><a class="lnk" href="tel:+84936198938">{PHONE}</a>{copy_btn(PHONE, "số điện thoại")}</li>
 <li>{ALL_BTN}</li></ul></div>
-<form class="form ct-f rv" data-demo data-ok="Cảm ơn bạn — bản demo, chưa gửi đi đâu." novalidate>
+<form class="form ct-f rv" data-request data-request-subject="Yêu cầu tư vấn máy rang OTL" novalidate>
 <div class="full"><label for="h-name">Tên của bạn</label><input id="h-name" autocomplete="name"></div>
 <div><label for="h-mail">Email *</label><input id="h-mail" type="email" required autocomplete="email"></div>
 <div><label for="h-phone">Số điện thoại *</label><input id="h-phone" type="tel" required autocomplete="tel"></div>
@@ -550,7 +550,7 @@ def foot():
     rl = "".join(f'<li><a href="{r["slug"]}.html">{r["name"]}</a></li>' for r in ROASTERS)
     el = "".join(f'<li><a href="{e["slug"]}.html">{e["name"]}</a></li>' for e in EQUIP)
     return f'''<footer class="foot"><div class="wrap">
-<p class="note">Thông số trên trang lấy từ trang sản phẩm otlpro.com và brochure OTL. Bản thiết kế demo để duyệt — biểu mẫu chưa gửi dữ liệu.</p>
+<p class="note">Thông số tham khảo từ otlpro.com và brochure OTL; cấu hình cuối cùng được xác nhận trong báo giá. Biểu mẫu chuẩn bị nội dung để bạn kiểm tra và gửi qua ứng dụng email.</p>
 <div class="cols">
 <div><h4>Máy rang</h4><ul>{rl}<li><a href="compare.html">So sánh mẫu máy</a></li></ul></div>
 <div><h4>Thiết bị</h4><ul>{el}<li><a href="equipment.html">Tất cả thiết bị</a></li></ul></div>
@@ -643,6 +643,46 @@ def family_row():
                    f'<figcaption>{r["name"]}</figcaption></figure>')
     return f'<div class="family rv-up">{"".join(out)}</div>'
 
+
+def finder_section():
+    """Gợi ý sơ bộ theo dải khối lượng mẻ đã công bố, không tự suy ra năng suất hay cấu hình."""
+    data = []
+    for r in ROASTERS:
+        lo, hi = [float(v.replace(",", ".")) for v in r["batch"].split("–")]
+        data.append(dict(slug=r["slug"], name=r["name"], batchMin=lo, batchMax=hi,
+                         output=r["kgh"] + " kg/giờ", img=img(r["hero"], r["mode"]),
+                         url=r["slug"] + ".html", quote=qlink(r["name"])))
+    first = ROASTERS[2]
+    picture = im_tag(first["hero"], first["mode"], first["name"]).replace("<img ", "<img data-finder-image ", 1)
+    return f'''<section class="sec bg-c" id="chon-may" data-finder><div class="wrap">
+<div class="section-intro"><div><p class="eyebrow">Bắt đầu từ nhu cầu của bạn</p><h2 class="h-l">Mỗi mẻ bao nhiêu kg?</h2></div>
+<p class="lead">Từ quán cà phê đến dây chuyền công nghiệp. Tìm dải máy phù hợp trước khi đi sâu vào cấu hình.</p></div>
+<div class="finder-layout">
+<form class="finder-input" data-finder-form novalidate>
+<label for="finder-batch">Khối lượng mỗi mẻ (kg)</label><div class="finder-number"><input id="finder-batch" type="text" inputmode="decimal" value="6" required aria-describedby="finder-hint"><span>kg / mẻ</span></div>
+<p id="finder-hint" class="small">Nhập từ 0,5 đến 500 kg. Ví dụ: 3, 6 hoặc 30 kg.</p>
+<label for="finder-use">Bạn sẽ dùng máy ở đâu?</label><select id="finder-use"><option value="cafe">Quán cà phê / phòng thử mẫu</option><option value="roastery" selected>Xưởng rang</option><option value="industrial">Dây chuyền công nghiệp</option></select>
+<button class="btn btn-f" type="submit">Tìm máy phù hợp</button>
+<a class="lnk" href="compare.html">Tự so sánh các mẫu máy</a></form>
+<div class="finder-result" id="finder-result" role="region" tabindex="-1" aria-label="Gợi ý máy rang">
+<div class="finder-art">{picture}</div><div class="finder-info"><p class="eyebrow">Gợi ý theo khối lượng mẻ</p><h3 data-finder-title>OTL-06</h3>
+<p data-finder-copy>Mẻ 6 kg nằm trong dải vận hành công bố của OTL-06.</p><p class="finder-spec" data-finder-spec>2–6 kg/mẻ · 8–24 kg/giờ</p>
+<div class="btns"><a class="btn btn-f sm" data-finder-more href="otl-06.html">Xem OTL-06</a><a class="lnk" data-finder-quote href="{qlink('OTL-06')}">Nhận báo giá</a></div>
+<p class="small" data-finder-status role="status" aria-live="polite"></p></div></div></div>
+<p class="finder-note small">Gợi ý theo khối lượng mẻ, chưa thay thế tư vấn cấu hình. Sản lượng thực tế phụ thuộc loại hạt, hồ sơ rang và cách tổ chức vận hành.</p>
+<noscript><p class="small">Bạn có thể <a class="lnk" href="roasters.html">xem toàn bộ dòng máy</a> để chọn thủ công.</p></noscript>
+</div><script>window.ROASTER_FINDER={json.dumps(data, ensure_ascii=False)};window.ROASTER_CUSTOM_QUOTE={json.dumps(QCUSTOM)}</script></section>'''
+
+
+def detail_section():
+    return f'''<section class="sec bg-w"><div class="wrap">
+<div class="section-intro"><div><p class="eyebrow">Nhìn gần hơn</p><h2 class="h-l">Chất lượng nằm trong từng chi tiết.</h2></div><a class="lnk" href="about.html#quy-trinh">Quy trình từ chế tạo đến lắp đặt</a></div>
+<div class="detail-grid">
+<article class="detail-card"><a href="solutions.html#profiles">{im_tag('a280', 'p', 'Bảng điều khiển và trống rang OTL-06')}</a><div><p class="eyebrow">Điều khiển</p><h3>Theo dõi để điều chỉnh.</h3><p>Nhiệt độ, gió và hồ sơ rang giúp người vận hành theo dõi diễn biến từng mẻ.</p><a class="lnk" href="solutions.html#profiles">Khám phá điều khiển</a></div></article>
+<article class="detail-card"><a href="otl-15.html#gallery">{im_tag('a109', 'p', 'Khay làm nguội máy rang OTL-15')}</a><div><p class="eyebrow">Sau khi rang</p><h3>Hoàn thiện đến khâu làm nguội.</h3><p>Khay làm nguội là một phần của dây chuyền, cùng máy rang và các thiết bị phụ trợ.</p><a class="lnk" href="equipment.html">Xem thiết bị đồng bộ</a></div></article>
+<article class="detail-card"><a href="about.html#nha-may">{im_tag('a168', 'p', 'Gia công hàn tại nhà máy OTL')}</a><div><p class="eyebrow">Chế tạo tại Việt Nam</p><h3>Có đội ngũ phía sau mỗi máy.</h3><p>Từ gia công đến lắp đặt, đào tạo và hỗ trợ kỹ thuật trong quá trình sử dụng.</p><a class="lnk" href="support.html">Cách OTL đồng hành</a></div></article>
+</div></div></section>'''
+
 def page_home():
     """Thứ tự thông điệp (23/10): 1 OTL là ai + làm gì, có con số · 2 cả dòng máy · 3 lý do chọn OTL · máy nổi bật ·
     4 bằng chứng · 5 hỗ trợ · 6 liên hệ. Chỉ dùng thông tin có trên otlpro.com / brochure."""
@@ -653,13 +693,10 @@ def page_home():
 <p class="eyebrow rv">OTL Roaster</p>
 <h1 class="h-hero rv">Máy rang cà phê,<br>từ 1,2 đến 500&nbsp;kg.</h1>
 <p class="sub rv">Thiết kế và chế tạo tại Việt Nam.<br>Đồng bộ từ máy rang đến cả dây chuyền.</p>
-<div class="btns rv"><a class="btn btn-f" href="roasters.html">Khám phá máy rang</a><a class="btn btn-o" href="quote.html">Nhận báo giá</a></div>
+<div class="btns rv"><a class="btn btn-f" href="#chon-may">Chọn máy</a><a class="btn btn-o" href="quote.html">Nhận báo giá</a></div>
 </div>{family_row()}</section>
 
-<section class="sec bg-w center tight"><div class="wrap">
-<h2 class="h-l rv">Chọn cỡ máy của bạn.</h2><p class="lead rv" style="margin-top:12px">Tám mẫu máy máy rang tiêu chuẩn, hệ thống lớn tới 500 kg làm theo yêu cầu, và thiết bị hoàn thiện dây chuyền.</p>
-</div><div class="wide" style="margin-top:40px">{strip(roaster_items() + equip_items())}</div>
-<div class="btns c rv" style="margin-top:28px"><a class="lnk" href="roasters.html">Xem tất cả máy rang</a><a class="lnk" href="compare.html">So sánh mẫu máy</a></div></section>
+{finder_section()}
 
 <section class="sec bg-c"><div class="wrap">
 <h2 class="h-xl rv center">Vì sao chọn OTL.</h2>
@@ -670,6 +707,7 @@ def page_home():
 <div class="fc"><p class="n">Làm tại Việt Nam</p><h3>Chế tạo tại Việt Nam từ 2018.</h3><p>Thiết kế và sản xuất tại nhà máy của OTL, phục vụ khách trong nước và xuất khẩu đi châu Âu, Trung Đông, châu Á, châu Úc.</p><p style="margin-top:14px"><a class="lnk" href="about.html">Về OTL</a></p></div>
 </div></div></section>
 
+{detail_section()}
 <section class="hero bg-wash pb"><div class="wrap">
 <p class="eyebrow rv">Chủ lực</p><h2 class="h-hero rv">OTL-06</h2><p class="sub rv">{six["tagline"]}</p>
 <div class="btns rv"><a class="btn btn-f" href="otl-06.html">Tìm hiểu thêm</a><a class="btn btn-o" href="{qlink("OTL-06")}">Nhận báo giá</a></div>
@@ -734,7 +772,7 @@ def page_roasters():
 <div class="wrap grid3">{eq}</div></section>
 {cta("Chưa biết chọn cỡ nào?", "Đội ngũ OTL giúp bạn chọn máy theo khối lượng mẻ, sản lượng và mặt bằng.", ("Nhận báo giá", "quote.html"), ("Liên hệ hỗ trợ", "support.html"), "bg-w")}
 </main>{foot()}'''
-    return head("Máy rang — OTL Roaster", "Máy rang cà phê OTL từ 1,2 đến 500 kg mỗi mẻ. Khám phá dòng máy và so sánh model.") + body
+    return head("Máy rang — OTL Roaster", "Máy rang cà phê OTL từ 1,2 đến 500 kg mỗi mẻ. Khám phá dòng máy và so sánh mẫu máy.") + body
 
 COMPARE_ICON = ('<svg viewBox="0 0 80 76" width="80" height="76" fill="none" stroke="#86868b" stroke-width="2" aria-hidden="true">'
                 '<rect x="8" y="18" width="26" height="44" rx="4"/><rect x="46" y="18" width="26" height="44" rx="4"/>'
@@ -776,7 +814,7 @@ def page_model(i):
 <main class="{dk.strip()}">
 <section class="hero product-hero dk bg-w" id="overview"><div class="wrap">
 <p class="eyebrow rv">{r["kind"]}</p><h1 class="h-hero rv">{r["name"]}</h1><p class="sub rv">{r["tagline"]}</p>
-<div class="btns rv"><a class="btn btn-f" href="{qlink(r["name"])}">Nhận báo giá</a><a class="btn btn-o" href="compare.html?a={r["slug"]}">So sánh</a></div>
+<div class="btns rv"><a class="btn btn-f" href="{qlink(r["name"])}">Nhận báo giá</a><a class="btn btn-o" href="compare.html?a={r["slug"]}">So sánh</a><p class="hero-facts">{r["batch"]} kg/mẻ · {r["kgh"]} kg/giờ</p></div>
 {shot}</div></section>
 
 <section class="sec bg-w" id="highlights"><div class="wrap">
@@ -940,8 +978,8 @@ def page_support():
 <div class="banner rv-f">{im_tag("a175", "p", "Kỹ thuật viên OTL lắp đặt máy rang", lazy=False)}</div></section>
 <section class="sec bg-c"><div class="wrap"><h2 class="h-l rv">Đồng hành ở mọi bước.</h2><div class="feats three">{fc}</div></div></section>
 <section class="sec bg-w" id="contact"><div class="wrap">
-<h2 class="h-l rv">Liên hệ.</h2><p class="lead rv" style="margin-top:12px">Chúng tôi phản hồi trong một ngày làm việc.</p>
-<form class="form" data-demo data-ok="Cảm ơn bạn — bản demo, chưa gửi đi đâu." novalidate>
+<h2 class="h-l rv">Liên hệ.</h2><p class="lead rv" style="margin-top:12px">Chuẩn bị nội dung cần hỗ trợ hoặc chọn một kênh liên hệ trực tiếp bên dưới.</p>
+<form class="form" data-request data-request-subject="Yêu cầu hỗ trợ kỹ thuật OTL" novalidate>
 <div><label for="c-name">Tên *</label><input id="c-name" required autocomplete="name"></div>
 <div><label for="c-mail">Email *</label><input id="c-mail" type="email" required autocomplete="email"></div>
 <div class="full"><label for="c-msg">Chúng tôi giúp gì được bạn? *</label><textarea id="c-msg" required></textarea></div>
@@ -1063,7 +1101,7 @@ def page_quote():
 <main><section class="sec bg-c" style="padding-top:72px"><div class="wrap" style="max-width:820px">
 <h1 class="h-xl rv">Nhận báo giá.</h1>
 <p class="lead rv" style="margin-top:12px">Cho OTL biết bạn rang gì và rang bao nhiêu. Chúng tôi sẽ gửi báo giá, thời gian giao hàng và kế hoạch lắp đặt.</p>
-<form class="form" data-demo data-ok="Cảm ơn bạn — bản demo, chưa gửi đi đâu." novalidate>
+<form class="form" data-request data-request-subject="Yêu cầu báo giá máy rang OTL" novalidate>
 <div><label for="f-name">Tên *</label><input id="f-name" required autocomplete="name"></div>
 <div><label for="f-company">Công ty</label><input id="f-company" autocomplete="organization"></div>
 <div><label for="f-mail">Email *</label><input id="f-mail" type="email" required autocomplete="email"></div>
@@ -1072,6 +1110,11 @@ def page_quote():
 <div><label for="f-model">Mẫu máy</label><select id="f-model"><option value="">Chưa chắc chắn</option>{opts}</select></div>
 <div class="full"><label for="f-msg">Khối lượng mẻ, sản lượng mỗi ngày và yêu cầu khác *</label><textarea id="f-msg" required></textarea></div>
 <div class="btns"><button class="btn btn-f" type="submit">Gửi yêu cầu báo giá</button><a class="lnk" href="compare.html">So sánh mẫu máy trước</a></div></form>
+<div class="quote-help"><h2 class="h-m">Trước khi yêu cầu báo giá.</h2>
+<details><summary>Tôi chưa biết chọn cỡ máy nào.</summary><p>Bắt đầu từ khối lượng mỗi mẻ và sản lượng dự kiến mỗi ngày. <a class="lnk" href="index.html#chon-may">Thử gợi ý máy</a> hoặc <a class="lnk" href="compare.html">so sánh các mẫu máy</a>.</p></details>
+<details><summary>Tôi nên cung cấp những thông tin gì?</summary><p>Khối lượng mẻ, sản lượng mỗi ngày, loại hạt, mặt bằng lắp đặt và nguồn điện hiện có. Nếu cần silo, tách đá hoặc xử lý khói, hãy ghi cùng yêu cầu để OTL tư vấn đồng bộ.</p></details>
+<details><summary>Máy trên 120 kg được tư vấn thế nào?</summary><p>Hệ thống tới 500 kg được thiết kế theo yêu cầu. OTL cần trao đổi về sản lượng, mặt bằng và cấu hình trước khi xác nhận thông số và báo giá.</p></details>
+<details><summary>Bấm chuẩn bị yêu cầu có gửi thông tin ngay không?</summary><p>Chưa. Website tạo bản nội dung để bạn kiểm tra, sau đó bạn chủ động mở ứng dụng email để gửi. Bạn cũng có thể sao chép nội dung sang Zalo, WhatsApp hoặc kênh liên hệ đang sử dụng.</p></details></div>
 </div></section></main>{foot()}'''
     return head("Nhận báo giá — OTL Roaster", "Gửi yêu cầu báo giá máy rang hoặc thiết bị OTL.") + body
 
@@ -1090,7 +1133,9 @@ def main():
         pages[e["slug"]] = page_equip(e)
     for name, h in pages.items():
         h = h.replace("<main", '<main id="main-content" tabindex="-1"', 1)
-        h = h.replace(' novalidate>', ' novalidate><p class="demo-note full">Biểu mẫu thử nghiệm, chưa gửi thông tin. Để được tư vấn, vui lòng liên hệ OTL qua điện thoại hoặc các kênh nhắn tin.</p>')
+        h = h.replace("data-demo", "data-request")
+        h = re.sub(r'(<form\b[^>]*\bdata-request\b[^>]*>)', r'\1<p class="demo-note full">Chuẩn bị nội dung tư vấn ngay trên trang. Bạn sẽ kiểm tra rồi mở ứng dụng email để gửi, hoặc sao chép nội dung sang kênh nhắn tin.</p>', h)
+        h = h.replace('>Gửi yêu cầu báo giá</button>', '>Chuẩn bị yêu cầu báo giá</button>').replace('>Gửi tin nhắn</button>', '>Chuẩn bị tin nhắn</button>')
         (OUT / f"{name}.html").write_text(h, encoding="utf-8")
     total = sum(p.stat().st_size for p in IMG.iterdir())
     print(f"{len(pages)} trang -> {OUT}  | anh: {len(list(IMG.iterdir()))} file, {total / 1e6:.1f} MB")

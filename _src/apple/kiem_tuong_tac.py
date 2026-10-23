@@ -64,6 +64,49 @@ def run(browser, base):
     print("DAT gallery: bấm nhanh, đúng ảnh/mô tả/trạng thái chọn")
     ctx.close()
 
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900}, permissions=["clipboard-read", "clipboard-write"], reduced_motion="reduce")
+    page = ctx.new_page()
+    page.goto(base, wait_until="networkidle")
+    for batch, expected in [(0.5, "OTL-1.2"), (0.75, "OTL-1.2"), ("0,75", "OTL-1.2"), (1.2, "OTL-1.2"), (1.25, "OTL-03"), ("1,25", "OTL-03"), (3, "OTL-03"), (6, "OTL-06"), (12, "OTL-12"), (15, "OTL-15"), (30, "OTL-30"), (60, "OTL-60"), (120, "OTL-120")]:
+        page.locator("#finder-batch").fill(str(batch))
+        page.locator("[data-finder-form] button").click()
+        assert page.locator("[data-finder-title]").inner_text() == expected, (batch, expected)
+        assert expected in page.locator("[data-finder-quote]").get_attribute("href")
+    for batch in [121, 500]:
+        page.locator("#finder-batch").fill(str(batch));page.locator("[data-finder-form] button").click()
+        assert "theo yêu cầu" in page.locator("[data-finder-title]").inner_text()
+        assert "model=" in page.locator("[data-finder-quote]").get_attribute("href")
+    for batch in ["", "0.4", "501", "abc", "1,2,3", "-1"]:
+        page.locator("#finder-batch").fill(batch);page.locator("[data-finder-form] button").click()
+        assert page.locator("#finder-batch").get_attribute("aria-invalid") == "true"
+        assert not page.locator("[data-finder-quote]").is_visible()
+    print("DAT chọn máy: các mốc dải mẻ, cấu hình riêng và giá trị không hợp lệ")
+
+    page.goto(base + "quote.html?model=OTL-30", wait_until="networkidle")
+    posts = []
+    page.on("request", lambda r: posts.append(r.url) if r.method == "POST" else None)
+    text = '<img src=x onerror="alert(1)"> cần tư vấn máy rang'
+    page.locator("#f-name").fill("Khách kiểm tra")
+    page.locator("#f-mail").fill("test@example.com")
+    page.locator("#f-country").fill("Việt Nam")
+    page.locator("#f-msg").fill(text)
+    original = page.locator("form[data-request] button[type=submit]").inner_text()
+    page.locator("form[data-request] button[type=submit]").click()
+    assert page.locator(".request-preview").is_visible()
+    assert text in page.locator(".request-preview").inner_text()
+    assert page.locator(".request-preview img").count() == 0
+    email = page.locator('.request-preview a[href^="mailto:"]').get_attribute("href")
+    assert email.startswith("mailto:otlpro.com@gmail.com?") and "OTL-30" in email
+    assert not posts and "quote.html" in page.url, "Chuẩn bị yêu cầu đã tự gửi hoặc điều hướng"
+    page.locator("[data-request-copy]").click()
+    copied = page.evaluate("navigator.clipboard.readText()")
+    assert text in copied and "OTL-30" in copied
+    page.locator("#f-msg").fill("Nhu cầu mới")
+    assert page.locator(".request-preview").count() == 0, "Còn bản yêu cầu cũ sau khi sửa"
+    assert page.locator("form[data-request] button[type=submit]").inner_text() == original
+    print("DAT tư vấn: bản xem trước, mã hóa email, sao chép, không tự gửi, sửa lại nội dung")
+    ctx.close()
+
     ctx = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
     page = ctx.new_page()
     page.goto(base + "compare.html", wait_until="networkidle")

@@ -341,7 +341,7 @@
   }
 
   function forms(P) {
-    var errorNo = 0;
+    var errorNo = 0, previewNo = 0;
     function clearError(i) {
       i.classList.remove("m-bad"); i.removeAttribute("aria-invalid");
       if (!i._mError) return;
@@ -378,11 +378,64 @@
       i.setAttribute("aria-errormessage", id);
       i.classList.add("m-bad"); i.setAttribute("aria-invalid", "true");
     }
-    qa("form[data-demo]").forEach(function (f) {
+    function fieldValue(i) {
+      if ((i.type === "checkbox" || i.type === "radio") && !i.checked) return "";
+      if (i.tagName === "SELECT") {
+        return qa("option", i).filter(function (o) { return o.selected && o.value; }).map(function (o) { return o.textContent.trim(); }).join(", ");
+      }
+      return i.value.trim();
+    }
+    function requestFields(f) {
+      return qa("input, textarea, select", f).filter(function (i) {
+        return !i.disabled && i.type !== "hidden" && i.type !== "submit" && i.type !== "button" && fieldValue(i);
+      }).map(function (i) { return { label: fieldName(i), value: fieldValue(i) }; });
+    }
+    function node(tag, className, text) {
+      var el = document.createElement(tag);
+      if (className) el.className = className;
+      if (text != null) el.textContent = text;
+      return el;
+    }
+    function clearPreview(f, submit) {
+      var panel = f.querySelector(".request-preview");
+      if (panel) panel.remove();
+      if (submit && submit._requestLabel != null) submit.textContent = submit._requestLabel;
+    }
+    function showPreview(f, submit, fields) {
+      var panel = node("section", "request-preview"), headingId = "request-preview-title-" + (++previewNo);
+      panel.setAttribute("role", "region"); panel.setAttribute("aria-labelledby", headingId); panel.tabIndex = -1;
+      var heading = node("h3", "request-preview-title", "Yêu cầu đã sẵn sàng"); heading.id = headingId; panel.appendChild(heading);
+      var list = node("dl", "request-summary");
+      fields.forEach(function (item) {
+        list.appendChild(node("dt", "", item.label));
+        list.appendChild(node("dd", "", item.value));
+      });
+      panel.appendChild(list);
+      panel.appendChild(node("p", "request-next", "Kiểm tra nội dung rồi mở email để gửi cho OTL."));
+      var summary = fields.map(function (item) { return item.label + ": " + item.value; }).join("\n");
+      var body = "Xin chào OTL,\n\n" + summary + "\n\nVui lòng liên hệ lại để tư vấn thêm. Cảm ơn OTL.";
+      var subject = f.dataset.requestSubject || "Yêu cầu tư vấn từ website OTL";
+      var actions = node("div", "btns request-actions");
+      var email = node("a", "btn btn-f", "Mở email để gửi");
+      email.href = "mailto:otlpro.com@gmail.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+      var copy = node("button", "btn", "Sao chép nội dung");
+      copy.type = "button"; copy.setAttribute("data-request-copy", ""); copy._copyText = subject + "\n\n" + body;
+      var copyStatus = node("span", "request-copy-status");
+      copyStatus.setAttribute("role", "status"); copyStatus.setAttribute("aria-live", "polite");
+      actions.appendChild(email); actions.appendChild(copy); actions.appendChild(copyStatus); panel.appendChild(actions);
+      f.appendChild(panel);
+      submit.textContent = "Đã chuẩn bị yêu cầu";
+      anim(panel, FX.rise(14), 360, 0, P.ease);
+      panel.focus({ preventScroll: true });
+      panel.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "nearest" });
+    }
+    qa("form[data-request], form[data-demo]").forEach(function (f) {
+      var submit = f.querySelector("button[type=submit]");
+      if (!submit) return;
+      submit._requestLabel = submit.textContent.trim();
       f.addEventListener("submit", function (e) {
         e.preventDefault();
-        var priorStatus = f.querySelector(".m-form-status");
-        if (priorStatus) priorStatus.remove();
+        clearPreview(f, submit);
         qa("input, textarea, select", f).forEach(clearError);
         /* Kiểm cả định dạng email và ô trống; novalidate để tự hiển thị lỗi đồng nhất. */
         var bad = qa("input, textarea, select", f).filter(function (i) {
@@ -398,17 +451,11 @@
           bad[0].focus();
           return;
         }
-        var b = f.querySelector("button[type=submit]");
-        var ok = f.dataset.ok || "Bản demo — thông tin chưa được gửi.";
-        b.textContent = "Thông tin hợp lệ";
-        var status = document.createElement("p");
-        status.className = "m-form-status"; status.setAttribute("role", "status"); status.setAttribute("aria-live", "polite"); status.textContent = ok;
-        b.insertAdjacentElement("afterend", status);
-        anim(b, FX.pop(), 520, 0, P.ease);
+        showPreview(f, submit, requestFields(f));
       });
       qa("input, textarea, select", f).forEach(function (i) {
-        i.addEventListener("input", function () { clearError(i); });
-        i.addEventListener("change", function () { clearError(i); });
+        i.addEventListener("input", function () { clearError(i); clearPreview(f, submit); });
+        i.addEventListener("change", function () { clearError(i); clearPreview(f, submit); });
       });
     });
   }

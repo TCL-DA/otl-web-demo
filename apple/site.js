@@ -123,6 +123,99 @@
     });
   });
 
+  /* Bản xem trước yêu cầu được tạo động trong motion.js; chỉ sao chép khi khách bấm nút. */
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-request-copy]");
+    if (!b) return;
+    e.preventDefault();
+    var status = b.parentElement && b.parentElement.querySelector(".request-copy-status");
+    copyText(b._copyText || "").then(function () {
+      if (status) status.textContent = "Đã sao chép nội dung yêu cầu.";
+      if (window.OTLM && OTLM.anim) OTLM.anim(b, OTLM.FX.pop(), 260, 0, "cubic-bezier(.2,.7,.2,1)");
+    }, function () {
+      if (status) status.textContent = "Không thể sao chép tự động. Vui lòng thử lại.";
+    });
+  });
+
+  /* Bộ chọn máy: tải trọng mẻ quyết định model; loại hình sử dụng chỉ giúp diễn giải kết quả. */
+  var finderData = Array.isArray(window.ROASTER_FINDER) ? window.ROASTER_FINDER : [];
+  qa("[data-finder]").forEach(function (box) {
+    var form = box.querySelector("[data-finder-form]");
+    var batch = box.querySelector("#finder-batch"), use = box.querySelector("#finder-use"), result = box.querySelector("#finder-result");
+    if (!form || !batch || !use || !result) return;
+    var image = result.querySelector("[data-finder-image]"), title = result.querySelector("[data-finder-title]");
+    var copy = result.querySelector("[data-finder-copy]"), spec = result.querySelector("[data-finder-spec]");
+    var more = result.querySelector("[data-finder-more]"), quote = result.querySelector("[data-finder-quote]");
+    var status = result.querySelector("[data-finder-status]");
+    if (!image || !title || !copy || !spec || !more || !quote || !status) return;
+    if (!status.id) status.id = "finder-status";
+    var originalDescribedby = batch.getAttribute("aria-describedby");
+    var useNames = { cafe: "quán cà phê", roastery: "xưởng rang", industrial: "vận hành công nghiệp" };
+    var number = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 3 });
+
+    function clearResult() {
+      result.hidden = false; batch.removeAttribute("aria-invalid");
+      image.hidden = true; more.hidden = true; quote.hidden = true;
+      title.textContent = "Tìm cỡ máy của bạn";
+      copy.textContent = "Nhấn Tìm máy phù hợp để cập nhật gợi ý theo nhu cầu vừa nhập.";
+      spec.textContent = "";
+      if (originalDescribedby === null) batch.removeAttribute("aria-describedby");
+      else batch.setAttribute("aria-describedby", originalDescribedby);
+      status.textContent = "";
+    }
+    function invalid() {
+      result.hidden = false; image.hidden = true; more.hidden = true; quote.hidden = true;
+      title.textContent = "Kiểm tra khối lượng mẻ"; copy.textContent = ""; spec.textContent = "";
+      status.textContent = "Vui lòng nhập khối lượng mẻ từ 0,5 đến 500 kg.";
+      batch.setAttribute("aria-invalid", "true");
+      var ids = (originalDescribedby || "").split(/\s+/).filter(Boolean);
+      if (ids.indexOf(status.id) < 0) ids.push(status.id);
+      batch.setAttribute("aria-describedby", ids.join(" ")); batch.focus();
+    }
+    function showLinks() { more.hidden = false; quote.hidden = false; }
+    function custom(requested, useName) {
+      image.hidden = true;
+      title.textContent = "Cấu hình rang công nghiệp theo yêu cầu";
+      copy.textContent = "Mẻ " + number.format(requested) + " kg cho " + useName + " cần cấu hình hệ thống riêng từ OTL.";
+      spec.textContent = "Dải yêu cầu: trên 120 đến 500 kg mỗi mẻ";
+      more.href = "solutions.html"; more.textContent = "Xem giải pháp công nghiệp";
+      var customQuote = window.ROASTER_CUSTOM_QUOTE;
+      quote.href = typeof customQuote === "string" && customQuote ? customQuote : "quote.html?model=" + encodeURIComponent("Cấu hình riêng " + requested + " kg");
+      quote.textContent = "Yêu cầu cấu hình riêng"; showLinks();
+      status.textContent = "Đã chuyển sang yêu cầu cấu hình riêng để OTL tư vấn.";
+    }
+    function recommend(model, requested, useName) {
+      image.hidden = !model.img;
+      if (model.img) { image.src = model.img; image.alt = model.name + " — máy rang cà phê OTL"; }
+      title.textContent = model.name;
+      copy.textContent = "Mẻ " + number.format(requested) + " kg cho " + useName + " nằm trong dải vận hành của " + model.name + ".";
+      spec.textContent = "Dải mẻ: " + number.format(model.batchMin) + "–" + number.format(model.batchMax) + " kg" + (model.output ? " • Sản lượng: " + model.output : "");
+      more.href = model.url || "roasters.html"; more.textContent = "Xem " + model.name;
+      quote.href = model.quote || ("quote.html?model=" + encodeURIComponent(model.name)); quote.textContent = "Nhận báo giá " + model.name;
+      showLinks(); status.textContent = "Đã tìm thấy model có dải mẻ phù hợp.";
+    }
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      /* Nhận cả dấu phẩy tiếng Việt và dấu chấm, không hiểu nhầm ký hiệu khác thành số. */
+      var raw = batch.value.trim(), requested = Number(raw.replace(",", ".")), useName = useNames[use.value] || "nhu cầu đã chọn";
+      if (!/^(?:\d+(?:[.,]\d*)?|[.,]\d+)$/.test(raw) || !Number.isFinite(requested) || requested < 0.5 || requested > 500) { invalid(); return; }
+      batch.removeAttribute("aria-invalid"); result.hidden = false;
+      if (requested > 120) custom(requested, useName);
+      else {
+        var matches = finderData.filter(function (m) {
+          return Number(m.batchMin) <= requested && Number(m.batchMax) >= requested;
+        }).sort(function (a, b) { return Number(a.batchMax) - Number(b.batchMax) || Number(a.batchMin) - Number(b.batchMin); });
+        if (matches.length) recommend(matches[0], requested, useName);
+        else custom(requested, useName);
+      }
+      if (window.OTLM && OTLM.anim) OTLM.anim(result, OTLM.FX.rise(14), 360, 0, "cubic-bezier(.2,.7,.2,1)");
+      result.focus({ preventScroll: true });
+      result.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "nearest" });
+    });
+    batch.addEventListener("input", clearResult);
+    use.addEventListener("change", clearResult);
+  });
+
   /* Xem 3D: dùng chung một lần tải model-viewer; lỗi mạng hoặc treo đều trả nút về trạng thái thử lại. */
   var modelViewerPromise = null, modelViewerScript = null, modelViewerLoadNo = 0;
   function loadModelViewer() {
