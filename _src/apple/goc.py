@@ -435,3 +435,6 @@ def main():
         h = h.replace("<main", '<main id="main-content" tabindex="-1"', 1)
         (OUT / f"{name}.html").write_text(h, encoding="utf-8")
     print(f"[goc] +{len(extra)} trang (cong nghe, kien thuc x{len(BAI) + 1}, cua hang, {len(GOC_CO)} co thiet bi)")
+
+# 8 phong cách Apple theo nhóm trang (Claude 24/10) — chạy sau cùng, chỉ gắn lớp + phong.css
+exec(compile((HERE / "phong.py").read_text(encoding="utf-8"), str(HERE / "phong.py"), "exec"))
