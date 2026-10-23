@@ -74,7 +74,7 @@ def tasks_long(evs):
 def kiem(name, b):
     R, url = {}, (SITE / f"{name}.html").as_uri()
     # ---------- máy tính ----------
-    ctx = b.new_context(viewport={"width": 1440, "height": 900})
+    ctx = b.new_context(viewport={"width": 1440, "height": 900}, permissions=["clipboard-read", "clipboard-write"])
     pg = ctx.new_page(); errs = []
     pg.on("console", lambda m: m.type == "error" and errs.append("console: " + m.text[:160]))
     pg.on("pageerror", lambda e: errs.append("js: " + str(e)[:160]))
@@ -131,7 +131,18 @@ def kiem(name, b):
       b.click();await new Promise(r=>setTimeout(r,400));const hs=[...p.querySelectorAll('a')].map(a=>a.href).join(' ');
       const open=!p.hidden&&/wa\\.me/.test(hs)&&/zalo\\.me/.test(hs)&&/m\\.me/.test(hs)&&b.getAttribute('aria-expanded')==='true';
       document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'}));await new Promise(r=>setTimeout(r,200));
-      return open&&p.hidden?'ok':'LOI open='+open+' hidden='+p.hidden}""")
+      if(!open||!p.hidden)return 'LOI open='+open+' hidden='+p.hidden;
+      const z=document.querySelector('[data-zalo]');z.click();await new Promise(r=>setTimeout(r,500));
+      const q=p.querySelector('.zqr');const qr=!p.hidden&&q&&!q.hidden&&!!q.querySelector('svg path')&&location.href.indexOf('zalo')<0;
+      document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'}));await new Promise(r=>setTimeout(r,200));
+      return qr&&p.hidden&&q.hidden?'ok':'LOI zalo qr='+qr}""")
+    if pg.query_selector(".copy"):
+        R["copy"] = pg.evaluate("""async()=>{const bs=[...document.querySelectorAll('.copy')].filter(b=>b.getClientRects().length);if(!bs.length)return 'khong co nut hien';
+          const b=bs[0];b.scrollIntoView({block:'center'});await new Promise(r=>setTimeout(r,200));b.click();await new Promise(r=>setTimeout(r,300));
+          let clip='';try{clip=await navigator.clipboard.readText()}catch(e){clip='(khong doc duoc)'}
+          const ok=b.classList.contains('ok')&&/Copied/.test(b.textContent)&&(clip==='(khong doc duoc)'||clip===b.dataset.copy);
+          await new Promise(r=>setTimeout(r,2200));const back=!b.classList.contains('ok')&&/Copy$/.test(b.textContent.trim());
+          return ok&&back?'ok':'LOI ok='+ok+' back='+back+' clip='+clip.slice(0,30)}""")
     if pg.query_selector(".short button"):
         pg.route("**/*youtube-nocookie.com/**", lambda rt: rt.fulfill(status=200, body="<html></html>", content_type="text/html"))
         R["video"] = pg.evaluate("""async()=>{const b=document.querySelector('.short button');const id=b.dataset.yt;b.scrollIntoView({block:'center'});

@@ -24,8 +24,15 @@ ROWS = list(csv.DictReader(open(BASE / "danh-sach-anh.csv", encoding="utf-8-sig"
 E = html.escape
 
 # ======================================================================= ảnh
+# Bộ hồ sơ sếp đưa 23/10 (chép từ máy chủ \\OTESLA-MAYCHU\otesla\06_QUAN_LY\OTL ROASTER)
+MAYCHU = Path(r"F:\Kho-anh\01_May-rang\OTL-ROASTER-maychu")
+EXTRA = {"w30": MAYCHU / "Roaster" / "ROASTER OTL-30" / "30kg trang (2).png",      # OTL-30 trắng, HMI gắn hông — đúng luật nhận diện
+         "cyc": MAYCHU / "Cyclone" / "EXTERNAL CYCLONE-OTL6" / "DIMENTION.png"}  # bản vẽ kích thước, ảnh dựng ở bên phải
+Image.MAX_IMAGE_PIXELS = None   # ảnh dựng máy chủ 10000 × 10000 px
+
 def _src(key):
     if key == "ref": return REF
+    if key in EXTRA: return EXTRA[key]
     if key[0] == "c": return BASE / "tach-nen" / f"a{key[1:]}_isnet-general-use.png"
     if key[0] == "s": return BASE / "tach-nen" / f"a{key[1:]}_sach.png"
     return BASE / "anh-goc" / ROWS[int(key[1:])]["file"]
@@ -46,6 +53,17 @@ def _clear_white(im):
     out = im.convert("RGBA"); out.putalpha(alpha)
     return out
 
+def _clear_bg(im, tol=14):
+    """Ảnh dựng nền MÀU ĐỒNG NHẤT (vd nền xanh than 26,31,37) → trong suốt: tô loang từ mép vùng gần màu góc ảnh."""
+    im = im.convert("RGB"); bg = im.getpixel((2, 2))
+    diff = ImageChops.difference(im, Image.new("RGB", im.size, bg)).convert("L")
+    m = diff.point(lambda v: 255 if v <= tol else 0)
+    w, h = m.size
+    for s in [(x, 0) for x in range(0, w, 24)] + [(x, h - 1) for x in range(0, w, 24)] + [(0, y) for y in range(0, h, 24)] + [(w - 1, y) for y in range(0, h, 24)]:
+        if m.getpixel(s) == 255: ImageDraw.floodfill(m, s, 128)
+    out = im.convert("RGBA"); out.putalpha(m.point(lambda v: 0 if v == 128 else 255))
+    return out
+
 def _cut(im):
     im = im.convert("RGBA")
     box = im.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()
@@ -64,7 +82,10 @@ def img(key, mode="p"):
     if not path.exists():
         IMG.mkdir(parents=True, exist_ok=True)
         im = Image.open(_src(key))
+        if key == "cyc": im = im.convert("RGB").crop((410, 180, im.width, 665))   # chỉ lấy ảnh dựng (đo vùng điểm tối), bỏ nét bản vẽ
+        if im.width > 3000: im.thumbnail((3000, 3000), Image.LANCZOS)   # ảnh 10000 px: thu nhỏ trước khi tô loang
         if base_mode == "r": im = _cut(_clear_white(im))
+        elif base_mode == "k": im = _cut(_clear_bg(im))
         elif base_mode == "a": im = _cut(im)
         if mode == "t":
             im.thumbnail((240, 160), Image.LANCZOS)
@@ -112,7 +133,7 @@ ROASTERS = [
          intro="The OTL-03 is the ideal solution for medium-sized coffee shops and professional roasters. "
                "With its robust design and advanced features, it delivers precise, consistent roasting in every batch.",
          batch="1–3", kgh="4–12", burner="10", elec="1.5", power="1-phase 200–240 V · 50/60 Hz",
-         dims=["1800 × 860 × 1715"],
+         dims=["1800 × 860 × 1715 (V2)"],
          features=[("Efficient hot air flow", "An energy-saving hot-air system."),
                    ("Precise control", "Temperature and airflow under precise control."),
                    ("Durable design", "Easy to operate and easy to maintain."),
@@ -162,7 +183,7 @@ ROASTERS = [
          uses=["Large-scale coffee production", "Brands focused on quality and efficiency", "Commercial and specialty roasting"],
          gallery=[("a106", "OTL-15 in a café roastery"), ("a109", "OTL-15 cooling tray"), ("a111", "OTL-15 front"),
                   ("a116", "OTL-15 with touchscreen stand")]),
-    dict(slug="otl-30", name="OTL-30", kind="Industrial roaster", hero="a118", mode="r", wash=False, dark=True,
+    dict(slug="otl-30", name="OTL-30", kind="Industrial roaster", hero="w30", mode="k", wash=False, dark=True,
          tagline="Industrial output, fully automated.", tag="",
          lead="Automation and efficiency at industrial scale.",
          intro="The OTL-30 handles high volumes with unparalleled consistency. It is the solution for roasteries that "
@@ -213,11 +234,14 @@ EQUIP = [
          series="OD-05 · OD-15 · OD-30 · OD-60", tagline="Stones out. Quality in.",
          lead="Stones and heavy material, removed from roasted beans.",
          intro="The OD destoner removes stones and other heavy foreign materials from roasted beans, with precise engineering "
-               "and an adjustable air suction system. Shown below: the OD-15.",
-         stats=[("15–20", "kg", "per batch (OD-15)"), ("1.5", "kW", "power consumption"), ("220", "V", "1-phase, 50/60 Hz"),
-                ("4", "", "sizes, OD-05 to OD-60")],
-         specs=[("Capacity", "15–20 kg/batch (OD-15)"), ("Power consumption", "1.5 kW"), ("Voltage", "1-phase 220 V · 50/60 Hz"),
-                ("Material", "Food-grade stainless steel"), ("Series", "OD-05 · OD-15 · OD-30 · OD-60")],
+               "and an adjustable air suction system, in a size for every roaster.",
+         stats=[("5–40", "kg", "per batch, OD-05 to OD-30"), ("0.75–2.2", "kW", "power consumption"), ("4", "", "sizes, V1 and V2"),
+                ("Stainless", "", "food-grade steel")],
+         specs=[("Material", "Food-grade stainless steel"), ("Separation", "Adjustable air suction"),
+                ("Versions", "V1 and V2 for each size"), ("Series", "OD-05 · OD-15 · OD-30 · OD-60")],
+         table=(("Model", "Capacity", "Power", "Supply"),
+                [("OD-05", "5–10 kg/batch", "0.75 kW", "1-phase 220 V"), ("OD-15", "15–20 kg/batch", "1.5 kW", "1-phase 220 V"),
+                 ("OD-30", "30–40 kg/batch", "2.2 kW", "3-phase 380 V"), ("OD-60", "For 60 kg roasters", "On request", "On request")]),
          features=[("High-efficiency separation", "Air suction removes stones and heavy impurities precisely."),
                    ("Adjustable airflow", "Tune the airflow for beans of different density."),
                    ("Simple controls", "Intuitive controls for easy operation."),
@@ -231,9 +255,12 @@ EQUIP = [
                "comply with emission standards. Shown below: the AB-30.",
          stats=[("15–30", "kg", "roasters served (AB-30)"), ("12–70", "kW", "heating capacity"), ("2", "", "stage burner"),
                 ("4", "", "sizes, AB-15 to AB-120")],
-         specs=[("For roasters", "15–30 kg (AB-30)"), ("Burner", "Ecoflam (Italy), 2-stage"), ("Heating capacity", "12–70 kW"),
-                ("Temperature controller", "Delta"), ("Temperature sensor", "Omron (Japan)"),
+         specs=[("Burner", "Ecoflam (Italy), 2-stage"), ("Temperature controller", "Delta"), ("Temperature sensor", "Omron (Japan)"),
+                ("Operating temperature", "Up to 600 °C (AB-60)"), ("Technology", "High-efficiency combustion chamber that re-burns volatile compounds and particulates"),
                 ("Material", "Mild steel, electrostatic powder coating"), ("Series", "AB-15 · AB-30 · AB-60 · AB-120")],
+         table=(("Model", "For roasters", "Heating / connections", "Size, L × W × H"),
+                [("AB-15", "Up to 15 kg", "On request", "On request"), ("AB-30", "15–30 kg", "12–70 kW", "On request"),
+                 ("AB-60", "Up to 60 kg", "Inlet Ø250 · outlet Ø310 mm", "1452 × 700 × 934 mm"), ("AB-120", "Up to 120 kg", "On request", "On request")]),
          features=[("High smoke reduction", "Significantly reduces smoke and odour."),
                    ("Eco-friendly", "Helps your operation comply with air-quality regulations."),
                    ("Easy integration", "Optimised for OTL roasters and other compatible models."),
@@ -255,6 +282,19 @@ EQUIP = [
                    ("Fully customisable", "Designed around each customer's specific requirements.")],
          gallery=[("a72", "OTL silos in a roastery"), ("a78", "Silo cluster"), ("a220", "Silo cluster at the factory"),
                   ("a71", "Silos in a café")]),
+    dict(slug="cyclone", name="External Cyclone", short="Cyclone", kind="Equipment", hero="cyc", mode="r",
+         series="Add-on for the OTL-06", tagline="Chaff, handled outside.",
+         lead="Chaff collection, moved outside the roaster.",
+         intro="The External Cyclone is a smart add-on for your OTL roaster. Chaff is separated from the exhaust air outside the "
+               "machine and collected in a detachable container, so the roaster stays cleaner for longer.",
+         stats=[("1950", "mm", "height"), ("Ø400", "mm", "diameter"), ("0.75", "kW", "power consumption"), ("220", "V", "50/60 Hz")],
+         specs=[("Height", "1950 mm"), ("Diameter", "Ø400 mm"), ("Power consumption", "0.75 kW"), ("Voltage", "220 V · 50/60 Hz"),
+                ("Inlet / outlet", "Custom-fitted for the OTL roaster series"), ("Material", "Industrial-grade powder-coated steel")],
+         features=[("Easy maintenance", "No more opening internal cyclone doors to remove chaff after each roast."),
+                   ("Clean separation", "Chaff is separated from the exhaust air and collected in a detachable container."),
+                   ("Quick disposal", "Remove the container, empty it and keep roasting."),
+                   ("Better workflow", "Less time cleaning, more time roasting.")],
+         gallery=[]),
 ]
 
 MODE_OF = {x["hero"]: x["mode"] for x in ROASTERS + EQUIP}   # ảnh nhỏ phải xử lý theo đúng kiểu ảnh gốc
@@ -278,7 +318,7 @@ THEME_BTN = ('<button class="theme" type="button" data-theme-toggle aria-label="
              '<svg class="moon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>'
              '<svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">'
              '<circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>')
-WHITE = {"ref", "c240"}   # máy trắng: nền tối KHÔNG cần tấm sáng phía sau
+WHITE = {"ref", "c240", "w30"}   # máy trắng: nền tối KHÔNG cần tấm sáng phía sau
 
 def head(title, desc, gallery_keys=()):
     imgs = {k: img(k, m) for k, m in gallery_keys}
@@ -375,9 +415,38 @@ ZALO_SVG = ('<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
             '<path d="M7.5 8.2h8.2l-7.4 7.6h8" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>')
 MSGR_SVG = ('<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="#0084ff" d="M12 2C6.4 2 2 6.1 2 11.6c0 2.9 1.2 5.4 3.2 7.1V22l3-1.7c1.2.3 2.4.5 3.8.5 5.6 0 10-4.1 10-9.6S17.6 2 12 2z"/>'
             '<path fill="#fff" d="M6.4 14.3l3-4.7 2.4 1.9 3.3-1.9-3 4.7-2.4-1.9z"/></svg>')
+COPY_SVG = ('<svg class="i-copy" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2.5" '
+            'fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M16 8V6.5A2.5 2.5 0 0 0 13.5 4h-7A2.5 2.5 0 0 0 4 6.5v7A2.5 2.5 0 0 0 6.5 16H8" '
+            'fill="none" stroke="currentColor" stroke-width="1.9"/></svg>'
+            '<svg class="i-ok" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" '
+            'stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>')
+
+def copy_btn(value, what):
+    """Nút "Copy" có chữ + biểu tượng; bấm xong đổi "Copied" (tô cả nút) rồi tự trở lại."""
+    return f'<button type="button" class="copy" data-copy="{E(value)}" aria-label="Copy {E(what)}">{COPY_SVG}<span>Copy</span></button>'
+
+PHONE, EMAIL = "+84 936 198 938", "otlpro.com@gmail.com"
+OFFICE = "No. 44, N5 Street, Tan Phuoc Quarter, Tan Binh Ward, Di An City, Binh Duong, Vietnam"
+FACTORY = "398/33 DT743B, Dong Thanh Hamlet, Tan Dong Hiep Ward, Di An City, Binh Duong, Vietnam"
+ALL_INFO = ("OTL Industry Co., Ltd. (OTL Roaster)\nPhone / WhatsApp / Zalo: " + PHONE + "\nEmail: " + EMAIL
+            + "\nOffice: " + OFFICE + "\nFactory: " + FACTORY + "\nWebsite: www.otlpro.com")
+
+def zalo_qr_svg():
+    """Mã QR của link Zalo (số hotline). Trên máy tính zalo.me/<số> bắt đăng nhập (tài khoản cá nhân, chưa có Zalo OA)
+    → hiện QR để khách quét bằng app Zalo trên điện thoại. Có Zalo OA thì thay ZALO = link OA."""
+    import qrcode
+    q = qrcode.QRCode(border=2, error_correction=qrcode.constants.ERROR_CORRECT_M); q.add_data(ZALO); q.make(fit=True)
+    m = q.get_matrix(); n = len(m)
+    d = "".join(f"M{x} {y}h1v1h-1z" for y, row in enumerate(m) for x, v in enumerate(row) if v)
+    return (f'<svg viewBox="0 0 {n} {n}" width="168" height="168" shape-rendering="crispEdges" role="img" aria-label="Zalo QR code">'
+            f'<rect width="{n}" height="{n}" fill="#fff"/><path d="{d}" fill="#1b1d21"/></svg>')
+
 CHATS = [("WhatsApp", WA, WA_SVG), ("Zalo", ZALO, ZALO_SVG), ("Messenger", MSGR, MSGR_SVG)]
 CHAT_BTN = ('<div class="chat"><div class="chat-p" id="chat-p" hidden><p>Chat with OTL</p>'
-            + "".join(f'<a href="{u}" target="_blank" rel="noopener">{s}<span>{n}</span></a>' for n, u, s in CHATS)
+            + "".join(f'<a href="{u}" target="_blank" rel="noopener"{" data-zalo" if n == "Zalo" else ""}>{s}<span>{n}</span></a>' for n, u, s in CHATS)
+            + f'<div class="zqr" hidden>{zalo_qr_svg()}<p>Scan with Zalo on your phone<br><b>+84 936 198 938</b></p>{copy_btn(PHONE, "phone number")}</div>'
+            + f'<div class="chat-copy"><span>{PHONE}</span>{copy_btn(PHONE, "phone number")}</div>'
+            + f'<div class="chat-copy"><span>{EMAIL}</span>{copy_btn(EMAIL, "email address")}</div>'
             + '</div><button class="chat-b" type="button" aria-expanded="false" aria-controls="chat-p">'
             '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 5.5h16v10H9l-5 4z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>'
             '<span>Chat with us</span></button></div>')
@@ -418,8 +487,10 @@ CONTACT = f'''<section class="sec bg-c" id="contact"><div class="wrap contact">
 <div><h2 class="h-xl rv">Talk to OTL.</h2>
 <p class="lead rv" style="margin-top:14px">Questions about a roaster, a quote or service? Leave your details and our team will get back to you.</p>
 <ul class="ct-ways rv"><li><a class="lnk" href="{WA}" target="_blank" rel="noopener">Chat on WhatsApp</a></li>
-<li><a class="lnk" href="{ZALO}" target="_blank" rel="noopener">Chat on Zalo</a></li><li><a class="lnk" href="{MSGR}" target="_blank" rel="noopener">Message us on Facebook</a></li>
-<li><a class="lnk" href="mailto:otlpro.com@gmail.com">otlpro.com@gmail.com</a></li><li><a class="lnk" href="tel:+84936198938">+84 936 198 938</a></li></ul></div>
+<li><a class="lnk" href="{ZALO}" target="_blank" rel="noopener" data-zalo>Chat on Zalo</a></li><li><a class="lnk" href="{MSGR}" target="_blank" rel="noopener">Message us on Facebook</a></li>
+<li><a class="lnk" href="mailto:otlpro.com@gmail.com">otlpro.com@gmail.com</a>{copy_btn(EMAIL, "email address")}</li>
+<li><a class="lnk" href="tel:+84936198938">+84 936 198 938</a>{copy_btn(PHONE, "phone number")}</li>
+<li>{copy_btn(ALL_INFO, "all contact details").replace("<span>Copy</span>", "<span>Copy all contact details</span>")}</li></ul></div>
 <form class="form ct-f rv" data-demo data-ok="Thank you — demo only, nothing was sent." novalidate>
 <div class="full"><label for="h-name">Your name</label><input id="h-name" autocomplete="name"></div>
 <div><label for="h-mail">Email address *</label><input id="h-mail" type="email" required autocomplete="email"></div>
@@ -664,22 +735,30 @@ def page_equip_hub():
 <section class="sec bg-w" style="padding-top:64px;padding-bottom:40px"><div class="wrap">
 <h1 class="h-hero rv">Equipment</h1><p class="sub rv" style="margin-top:12px">Everything around the roaster, made to work with it.</p></div>
 <div class="wrap" style="margin-top:40px">{strip(equip_items())}</div></section>
-<div class="tiles">{tiles}<div class="tile"><p class="eyebrow">Industrial solutions</p><h2 class="h-l">The whole line.</h2><p class="sub">From green bean to clean air.</p>
+<div class="tiles">{tiles}<div class="tile" style="grid-column:1/-1"><p class="eyebrow">Industrial solutions</p><h2 class="h-l">The whole line.</h2><p class="sub">From green bean to clean air.</p>
 <div class="btns"><a class="btn btn-f sm" href="solutions.html">Learn more</a><a class="btn btn-o sm" href="quote.html">Quote</a></div>
 <div class="art ph">{im_tag("a72", "p", "OTL silos and roaster in a roastery")}</div></div></div>
 {cta("Plan a complete roasting line.", "Roaster, destoner, silo and afterburner, sized together and installed by one team.", ("Request a quote", "quote.html"), ("Industrial solutions", "solutions.html"), "bg-w")}
 </main>{foot()}'''
-    return head("Equipment — OTL Roaster", "OTL destoners, afterburners and silos.") + body
+    return head("Equipment — OTL Roaster", "OTL destoners, afterburners, silos and the External Cyclone.") + body
 
 def page_equip(e):
     gal_keys = [(k, "p") for k, _ in e["gallery"]]
     st = "".join(f'<div><b>{a}<small>{u}</small></b><span>{l}</span></div>' for a, u, l in e["stats"])
     sp = "".join(f"<dt>{a}</dt><dd>{b}</dd>" for a, b in e["specs"])
     feats = "".join(f'<div class="fc"><p class="n">{n + 1:02d}</p><h3>{E(a)}</h3><p>{E(b)}</p></div>' for n, (a, b) in enumerate(e["features"]))
-    others = [x for x in EQUIP if x is not e]
+    others = [x for x in EQUIP if x is not e][:3]
+    gal = (f'<section class="sec bg-w" id="gallery"><div class="wrap"><h2 class="h-l rv">Take a closer look.</h2>{gallery(e["gallery"])}</div></section>'
+           if e["gallery"] else "")
+    tbl = ""
+    if e.get("table"):
+        hd, rows = e["table"]
+        tbl = ('<div class="series-wrap rv"><table class="series"><thead><tr>' + "".join(f"<th>{h}</th>" for h in hd) + "</tr></thead><tbody>"
+               + "".join("<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>" for r in rows) + "</tbody></table></div>")
+        tbl = f'<h3 class="h-m rv" style="margin-top:60px">By size</h3>{tbl}'
     body = f'''{nav("equipment")}
 <div class="mini"><div class="in"><span class="nm">{e["name"]}</span>
-<nav aria-label="{e["name"]}"><a href="#overview">Overview</a><a href="#highlights">Highlights</a><a href="#gallery">Gallery</a><a href="#specs">Tech specs</a></nav>
+<nav aria-label="{e["name"]}"><a href="#overview">Overview</a><a href="#highlights">Highlights</a>{'<a href="#gallery">Gallery</a>' if e["gallery"] else ''}<a href="#specs">Tech specs</a></nav>
 <a class="btn btn-f sm" href="quote.html?model={e["name"]}">Request a quote</a></div></div>
 <main>
 <section class="hero bg-c" id="overview"><div class="wrap">
@@ -690,8 +769,8 @@ def page_equip(e):
 <h2 class="h-l rv measure center">{E(e["lead"])}</h2><p class="lead rv measure center" style="margin-top:18px">{E(e["intro"])}</p>
 <div class="stats">{st}</div></div></section>
 <section class="sec bg-c"><div class="wrap"><h2 class="h-l rv">Key features.</h2><div class="feats">{feats}</div></div></section>
-<section class="sec bg-w" id="gallery"><div class="wrap"><h2 class="h-l rv">Take a closer look.</h2>{gallery(e["gallery"])}</div></section>
-<section class="sec bg-c" id="specs"><div class="wrap"><h2 class="h-l rv">Tech specs.</h2><dl class="specs rv">{sp}</dl></div></section>
+{gal}
+<section class="sec bg-c" id="specs"><div class="wrap"><h2 class="h-l rv">Tech specs.</h2><dl class="specs rv">{sp}</dl>{tbl}</div></section>
 <section class="sec bg-w"><div class="wrap rail-head"><h2 class="h-l rv">Complete the line.</h2><a class="lnk rv" href="roasters.html">Roasters</a></div>
 <div class="wrap grid3">{"".join(lc_eq(x) for x in others)}</div></section>
 {cta(f'Add the {e["name"]} to your line.', "Tell us which roaster it will work with and we will size it for you.", ("Request a quote", f'quote.html?model={e["name"]}'), ("Talk to support", "support.html"))}
@@ -784,10 +863,11 @@ def page_support():
 <div class="full"><label for="c-msg">How can we help? *</label><textarea id="c-msg" required></textarea></div>
 <div class="btns"><button class="btn btn-f" type="submit">Send message</button></div></form>
 <div class="addr">
-<div><b>Office</b><p>No. 44, N5 Street, Tan Phuoc Quarter, Tan Binh Ward, Di An City, Binh Duong, Vietnam</p></div>
-<div><b>Factory</b><p>398/33 DT743B, Dong Thanh Hamlet, Tan Dong Hiep Ward, Di An City, Binh Duong, Vietnam</p></div>
-<div><b>Email and phone</b><p>otlpro.com@gmail.com<br>+84 936 198 938</p>
-<p style="margin-top:10px"><a class="lnk" href="{WA}" target="_blank" rel="noopener">WhatsApp</a> &nbsp;<a class="lnk" href="{ZALO}" target="_blank" rel="noopener">Zalo</a> &nbsp;<a class="lnk" href="{MSGR}" target="_blank" rel="noopener">Messenger</a></p></div></div></div></section>
+<div><b>Office</b><p>{OFFICE}</p>{copy_btn(OFFICE, "office address")}</div>
+<div><b>Factory</b><p>{FACTORY}</p>{copy_btn(FACTORY, "factory address")}</div>
+<div><b>Email and phone</b><p class="cp-row">{EMAIL} {copy_btn(EMAIL, "email address")}</p><p class="cp-row">{PHONE} {copy_btn(PHONE, "phone number")}</p>
+<p style="margin-top:10px"><a class="lnk" href="{WA}" target="_blank" rel="noopener">WhatsApp</a> &nbsp;<a class="lnk" href="{ZALO}" target="_blank" rel="noopener" data-zalo>Zalo</a> &nbsp;<a class="lnk" href="{MSGR}" target="_blank" rel="noopener">Messenger</a></p></div></div>
+<div class="btns" style="margin-top:28px">{copy_btn(ALL_INFO, "all contact details").replace("<span>Copy</span>", "<span>Copy all contact details</span>")}</div></div></section>
 </main>{foot()}'''
     return head("Support — OTL Roaster", "OTL consulting, installation, training, remote diagnosis and spare parts.") + body
 

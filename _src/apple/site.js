@@ -60,15 +60,26 @@
   syncTheme();
 
   /* Nút chat nổi: mở/đóng bảng WhatsApp · Zalo · Messenger; bấm ra ngoài hoặc Esc thì đóng */
-  var cb = document.querySelector(".chat-b"), cp = document.getElementById("chat-p");
+  var cb = document.querySelector(".chat-b"), cp = document.getElementById("chat-p"), zq = cp && cp.querySelector(".zqr");
   if (cb && cp) {
     var setChat = function (open) {
       cb.setAttribute("aria-expanded", open); cp.hidden = !open;
+      if (!open && zq) zq.hidden = true;
       if (open && window.OTLM && OTLM.anim) OTLM.anim(cp, OTLM.FX.rise(12), 320, 0, "cubic-bezier(.2,.7,.2,1)");
     };
     cb.addEventListener("click", function (e) { e.stopPropagation(); setChat(cp.hidden); });
     document.addEventListener("click", function (e) { if (!cp.hidden && !cp.contains(e.target)) setChat(false); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !cp.hidden) { setChat(false); cb.focus(); } });
+    /* Zalo trên MÁY TÍNH: link số cá nhân bắt đăng nhập → hiện mã QR để quét bằng điện thoại; điện thoại thì mở thẳng app */
+    qa("[data-zalo]").forEach(function (a) {
+      a.addEventListener("click", function (e) {
+        if (!zq || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+        e.preventDefault(); e.stopPropagation();
+        if (cp.hidden) setChat(true);
+        zq.hidden = false;
+        if (window.OTLM && OTLM.anim) OTLM.anim(zq, OTLM.FX.rise(10), 300, 0, "cubic-bezier(.2,.7,.2,1)");
+      });
+    });
   }
 
   /* Video Shorts: chỉ nạp YouTube (bản không cookie) khi khách bấm — trang vẫn nhẹ */
@@ -80,6 +91,33 @@
       f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen"; f.allowFullscreen = true;
       var box = document.createElement("div"); box.className = "yt-box"; box.appendChild(f);
       b.replaceWith(box);
+    });
+  });
+
+  /* Nút Copy: chép số điện thoại / email / địa chỉ; trình duyệt cũ không có Clipboard API thì dùng ô ẩn + execCommand */
+  function copyText(s) {
+    if (navigator.clipboard && window.isSecureContext !== false) {
+      return navigator.clipboard.writeText(s).catch(function () { return fallback(s); });
+    }
+    return fallback(s);
+  }
+  function fallback(s) {
+    return new Promise(function (ok, fail) {
+      var ta = document.createElement("textarea"); ta.value = s; ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;top:0;left:0;opacity:0"; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy") ? ok() : fail(); } catch (e) { fail(e); }
+      ta.remove();
+    });
+  }
+  qa(".copy").forEach(function (b) {
+    var lab = b.querySelector("span"), t0 = lab.textContent, timer = 0;
+    b.addEventListener("click", function (e) {
+      e.preventDefault(); e.stopPropagation();
+      copyText(b.dataset.copy).then(function () {
+        clearTimeout(timer); b.classList.add("ok"); lab.textContent = "Copied";
+        if (window.OTLM && OTLM.anim) OTLM.anim(b, OTLM.FX.pop(), 260, 0, "cubic-bezier(.2,.7,.2,1)");
+        timer = setTimeout(function () { b.classList.remove("ok"); lab.textContent = t0; }, 1800);
+      }, function () { lab.textContent = "Press Ctrl+C"; });
     });
   });
 
