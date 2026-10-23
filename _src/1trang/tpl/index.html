@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5 phương án giao diện otlpro.com</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f2ee;--card:#fff;--ink:#1c1b19;--soft:#66625b;--line:#e2ded6;--red:#d8262c;--f:"Be Vietnam Pro",system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.6 var(--f);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:56px 24px 72px}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+h1{font-size:clamp(30px,4vw,46px);line-height:1.15;margin:12px 0 18px;letter-spacing:-.01em}
+.intro{max-width:70ch;color:var(--soft);font-size:17px}
+.facts{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0}
+.facts span{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:14px}
+.pick{margin:36px 0 40px;background:var(--ink);color:#fff;border-radius:6px;padding:24px 28px;display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center}
+.pick b.n{font-size:44px;line-height:1;color:#fff}
+.pick p{color:#cfcac0}.pick strong{color:#fff}
+.grid{display:grid;gap:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;display:grid;grid-template-columns:1.25fr 1fr;overflow:hidden}
+.card .shot{display:block;border-right:1px solid var(--line);background:#ddd}
+.card .shot img{display:block;width:100%;height:100%;object-fit:cover;object-position:top;transition:opacity .2s}
+.card .shot:hover img{opacity:.88}
+.card .body{padding:26px 28px;display:flex;flex-direction:column;gap:12px}
+.card h2{font-size:26px;line-height:1.2;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.card h2 small{font-size:14px;font-weight:500;color:var(--soft)}
+.badge{display:inline-block;background:var(--red);color:#fff;font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;vertical-align:4px}
+.card .feel{color:var(--soft)}
+.card dl{display:grid;grid-template-columns:92px 1fr;gap:6px 12px;font-size:15px}
+.card dt{font-weight:600}
+.card .links{margin-top:auto;display:flex;gap:10px;flex-wrap:wrap;padding-top:8px}
+.btn{display:inline-block;text-decoration:none;font-weight:600;font-size:15px;padding:12px 18px;border-radius:4px;border:1px solid var(--ink)}
+.btn.main{background:var(--ink);color:#fff}
+.btn.main:hover{background:var(--red);border-color:var(--red)}
+.btn.sub:hover{background:var(--ink);color:#fff}
+.notes{margin-top:44px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:26px 28px}
+.notes h3{font-size:18px;margin-bottom:10px}
+.notes ul{padding-left:20px;color:var(--soft)}
+.notes li{margin:6px 0}
+footer{margin-top:28px;font-size:13px;color:var(--soft)}
+@media (max-width:860px){
+  .wrap{padding:32px 16px 56px}
+  .card{grid-template-columns:1fr}
+  .card .shot{border-right:0;border-bottom:1px solid var(--line);aspect-ratio:16/10}
+  .card .body{padding:20px 18px}
+  .pick{grid-template-columns:1fr;padding:20px}
+  .card dl{grid-template-columns:1fr;gap:0}.card dd{margin-bottom:8px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">OTL Roaster · Đề xuất giao diện mới · 23/10/2026</div>
+  <h1>5 phương án nâng cấp giao diện otlpro.com</h1>
+  <p class="intro">Mỗi bản là một trang chủ demo dựng theo một phong cách thiết kế của các hãng lớn (lấy từ thư viện Refero Styles). Chữ, thông số 8 dòng máy và ảnh đều lấy từ otlpro.com hiện tại, không thêm số liệu mới — chỉ đổi cách trình bày. Bấm vào ảnh hoặc nút để mở từng bản, xem được cả trên điện thoại.</p>
+  <div class="facts"><span>Mỗi bản: 5 sản phẩm có ảnh thật</span><span>27–38 ảnh thật / bản</span><span>190–260 hiệu ứng chuyển động / bản</span><span>Đo được 60 khung hình/giây khi cuộn</span><span>Có menu điện thoại, lọc sản phẩm, form liên hệ</span></div>
+
+  <div class="pick"><b class="n">1</b><p><strong>Đề xuất chọn: Superlative.</strong> Nền kem, ảnh máy là nhân vật chính, chỉ một màu cam như đèn LED trên máy — trông như catalogue máy cao cấp châu Âu, hợp khách nước ngoài và giữ được màu đỏ của logo. Phương án 2 (Dyson) hợp nếu ưu tiên bán hàng; phương án 4 (Caldera) nếu muốn trẻ, nổi bật chủ đề lửa.</p></div>
+
+  <div class="grid">
+    <article class="card">
+      <a class="shot" href="1-superlative.html"><img src="{{IMG:t1}}" alt="Ảnh xem trước phương án Superlative"></a>
+      <div class="body">
+        <h2>1 · Superlative <span class="badge">Đề xuất</span></h2>
+        <p class="feel">Hồ sơ sản phẩm công nghiệp: hero nền tối, chữ 90px mảnh, nhãn in lụa chỉ vào từng bộ phận máy, chỉ một màu cam như đèn LED.</p>
+        <dl><dt>Ưu điểm</dt><dd>Sang, “ra dáng hãng máy”; bảng thông số rõ ràng.</dd><dt>Hợp với</dt><dd>Khách xuất khẩu, nhà rang chuyên nghiệp.</dd></dl>
+        <div class="links"><a class="btn main" href="1-superlative.html">Mở bản demo</a><a class="btn sub" href="https://styles.refero.design/style/10ab6120-3d03-48ff-aebe-0b4910edc046" target="_blank">Phong cách gốc ↗</a></div>
+      </div>
+    </article>
+    <article class="card">
+      <a class="shot" href="2-dyson.html"><img src="{{IMG:t2}}" alt="Ảnh xem trước phương án Dyson"></a>
+      <div class="body">
+        <h2>2 · Dyson</h2>
+        <p class="feel">Phòng trưng bày trên giấy kem: thanh đen, dải thông báo xanh, lưới ảnh bo góc, thẻ sản phẩm trắng với nút xanh lá.</p>
+        <dl><dt>Ưu điểm</dt><dd>Dễ so sánh máy, có ô tìm kiếm và lọc sản phẩm, dẫn khách tới nút báo giá nhanh nhất.</dd><dt>Hợp với</dt><dd>Bán hàng, cửa hàng phụ tùng (Store).</dd></dl>
+        <div class="links"><a class="btn main" href="2-dyson.html">Mở bản demo</a><a class="btn sub" href="https://styles.refero.design/style/96845df2-7ddb-420a-814e-c339f95a6554" target="_blank">Phong cách gốc ↗</a></div>
+      </div>
+    </article>
+    <article class="card">
+      <a class="shot" href="3-bmw.html"><img src="{{IMG:t3}}" alt="Ảnh xem trước phương án BMW.com"></a>
+      <div class="body">
+        <h2>3 · BMW.com</h2>
+        <p class="feel">Trắng và xám than, một cột căn giữa, ảnh tràn viền không chữ đè, cả trang chỉ một tiêu đề lớn — chỉ ảnh mới có màu.</p>
+        <dl><dt>Ưu điểm</dt><dd>Sạch, hiện đại, ảnh lửa trong lò rất ấn tượng.</dd><dt>Hợp với</dt><dd>Hình ảnh cao cấp, tối giản.</dd></dl>
+        <div class="links"><a class="btn main" href="3-bmw.html">Mở bản demo</a><a class="btn sub" href="https://styles.refero.design/style/b8899cbd-e2ca-4069-83cf-d8f8b0d71100" target="_blank">Phong cách gốc ↗</a></div>
+      </div>
+    </article>
+    <article class="card">
+      <a class="shot" href="4-caldera.html"><img src="{{IMG:t4}}" alt="Ảnh xem trước phương án Caldera"></a>
+      <div class="body">
+        <h2>4 · Caldera</h2>
+        <p class="feel">“Lò rèn trên đá vôi”: chữ nén khổng lồ, khối halftone tím–cam, thẻ số liệu cam, máy đặt trên khối cam như poster.</p>
+        <dl><dt>Ưu điểm</dt><dd>Nổi bật nhất, đúng chủ đề lửa &amp; rang, dễ nhớ.</dd><dt>Hợp với</dt><dd>Khách trẻ, quán cà phê, mạng xã hội.</dd></dl>
+        <div class="links"><a class="btn main" href="4-caldera.html">Mở bản demo</a><a class="btn sub" href="https://styles.refero.design/style/fe8cdcf9-c850-4d52-be07-5ad269bf9ebf" target="_blank">Phong cách gốc ↗</a></div>
+      </div>
+    </article>
+    <article class="card">
+      <a class="shot" href="5-peakdesign.html"><img src="{{IMG:t5}}" alt="Ảnh xem trước phương án Peak Design"></a>
+      <div class="body">
+        <h2>5 · Peak Design</h2>
+        <p class="feel">Gallery nửa sáng nửa tối: tách đôi trắng/đen, chữ serif nghiêng, băng chuyền sản phẩm có tìm kiếm và chip lọc.</p>
+        <dl><dt>Ưu điểm</dt><dd>Kể chuyện thương hiệu O Tesla → OTL tốt nhất.</dd><dt>Hợp với</dt><dd>Giới thiệu công ty, xây dựng thương hiệu.</dd></dl>
+        <div class="links"><a class="btn main" href="5-peakdesign.html">Mở bản demo</a><a class="btn sub" href="https://styles.refero.design/style/6f3fb64d-d4c9-4ec1-86a1-7983e5180985" target="_blank">Phong cách gốc ↗</a></div>
+      </div>
+    </article>
+  </div>
+
+  <div class="notes">
+    <h3>Lưu ý khi làm thật</h3>
+    <ul>
+      <li>Đây là demo trang chủ để chọn hướng; các trang sản phẩm, công nghệ, hỗ trợ sẽ làm theo cùng phong cách sau khi chốt.</li>
+      <li>Web hiện tại dựng bằng Hostinger Website Builder: chỉnh trong trình dựng sẽ đạt khoảng 60–70% so với demo; muốn đúng 100% thì dựng lại web riêng và trỏ tên miền otlpro.com sang.</li>
+      <li>Phong cách mới cần ảnh máy sạch (tách nền hoặc chụp phông trơn). Phần lớn ảnh hiện tại chụp trong xưởng, nền lẫn đồ đạc.</li>
+      <li>Form liên hệ trong demo chỉ kiểm tra ô bắt buộc, chưa gửi đi đâu.</li>
+      <li>5 sản phẩm trong demo: máy rang OTL-06, OTL-03, máy tách đá OD, silo, xử lý khói AB. Máy 30–120 kg chỉ hiện trong bảng thông số vì ảnh hiện có đều kèm tủ điều khiển đứng rời.</li>
+      <li>Mỗi file HTML tự chứa đủ ảnh — gửi riêng từng file vẫn xem được; cần mạng chỉ để tải font chữ.</li>
+    </ul>
+  </div>
+  <footer>Phong cách tham khảo từ Refero Styles (styles.refero.design). Nội dung, thông số và ảnh: otlpro.com.</footer>
+</div>
+</body>
+</html>

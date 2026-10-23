@@ -1,0 +1,56 @@
+<svg class="circ" viewBox="0 0 1200 660" role="img" aria-labelledby="circ-t" xmlns="http://www.w3.org/2000/svg">
+<title id="circ-t">Simplified schematic of the OTL full-circulation airflow with seven temperature points</title>
+<g fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <!-- khí nóng: lò đốt → trống -->
+  <path d="M212 482H330" stroke="#dc2626" stroke-width="16"/>
+  <!-- khí thải: trống → cyclone → quạt → buồng đốt khói -->
+  <path d="M560 302V150H738" stroke="#8d5524" stroke-width="16"/>
+  <path d="M796 112V70H922" stroke="#8d5524" stroke-width="16"/>
+  <path d="M978 70H1076V122" stroke="#8d5524" stroke-width="16"/>
+  <!-- khí sạch ra ống khói -->
+  <path d="M1076 120V36" stroke="#a1a1a6" stroke-width="16"/>
+  <!-- khí nóng tuần hoàn về lò đốt -->
+  <path d="M1076 312V606H136V542" stroke="#b91c1c" stroke-width="10" stroke-dasharray="2 22"/>
+  <!-- gió làm nguội -->
+  <path d="M902 500H948V452" stroke="#1565c0" stroke-width="12"/>
+  <path d="M948 356V318" stroke="#1565c0" stroke-width="12"/>
+</g>
+<g fill="#fff" stroke="#86868b" stroke-width="3" stroke-linejoin="round">
+  <rect x="58" y="428" width="154" height="114" rx="14"/>
+  <rect x="330" y="300" width="300" height="232" rx="26"/>
+  <circle cx="480" cy="416" r="82"/>
+  <path d="M738 110h116v72l-58 92-58-92z"/>
+  <circle cx="950" cy="70" r="28"/>
+  <rect x="1020" y="120" width="112" height="192" rx="14"/>
+  <path d="M652 470h250v30q0 34-34 34H686q-34 0-34-34z"/>
+  <path d="M916 356h64v40l-32 56-32-56z"/>
+</g>
+<g fill="none" stroke="#86868b" stroke-width="3" stroke-linecap="round">
+  <path d="M420 386q60-40 120 0M420 446q60 40 120 0"/>
+  <path d="M630 448q24 4 30 22"/>
+  <path d="M936 58l28 24M964 58l-28 24"/>
+</g>
+<path d="M120 506q-18-22 2-48q4 18 14 22q6-14 2-30q30 22 18 56z" fill="#dc2626"/>
+<g font-family="inherit" font-size="19" fill="#3d434d" font-weight="600" text-anchor="middle">
+  <text x="135" y="414">Burner</text>
+  <text x="480" y="566">Drum</text>
+  <text x="796" y="300">Chaff cyclone</text>
+  <text x="950" y="122">Fan</text>
+  <text x="1076" y="276" font-size="16">Afterburner</text>
+  <text x="777" y="566">Cooling tray</text>
+  <text x="1076" y="22">Clean exhaust</text>
+</g>
+<g font-family="inherit" font-size="16" fill="#6e6e73" text-anchor="middle">
+  <text x="606" y="640">Recirculated hot air returns to the burner</text>
+  <text x="948" y="300">Cooling air</text>
+</g>
+<g font-family="inherit" font-size="15" font-weight="600" text-anchor="middle">
+  <g><circle cx="480" cy="472" r="15" fill="#3d434d"/><text x="480" y="477" fill="#fff">1</text></g>
+  <g><circle cx="560" cy="226" r="15" fill="#3d434d"/><text x="560" y="231" fill="#fff">2</text></g>
+  <g><circle cx="720" cy="502" r="15" fill="#3d434d"/><text x="720" y="507" fill="#fff">3</text></g>
+  <g><circle cx="272" cy="482" r="15" fill="#3d434d"/><text x="272" y="487" fill="#fff">4</text></g>
+  <g><circle cx="384" cy="334" r="15" fill="#3d434d"/><text x="384" y="339" fill="#fff">5</text></g>
+  <g><circle cx="796" cy="196" r="15" fill="#3d434d"/><text x="796" y="201" fill="#fff">6</text></g>
+  <g><circle cx="1076" cy="216" r="15" fill="#3d434d"/><text x="1076" y="221" fill="#fff">7</text></g>
+</g>
+</svg>

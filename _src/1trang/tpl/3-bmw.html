@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OTL Roaster — Demo 3 · BMW.com</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+/* BMW.com DESIGN.md — 2 mặt (trắng / carbon), không màu nhấn, góc 0, không bóng; ảnh là nguồn màu duy nhất */
+:root{
+  --color-carbon:#262626; --color-pure-white:#ffffff; --color-concrete:#bbbbbb; --color-fog:#f1f1f1;
+  --font-bmw:"Inter","Neue Haas Grotesk",system-ui,sans-serif;
+  --text-body-sm:16px; --text-body:18px; --text-display:60px; --page-max-width:1200px; --section-gap:56px;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;margin:0;padding:0;border-radius:0}
+html{scroll-behavior:smooth}
+body{background:var(--color-pure-white);color:var(--color-carbon);font:400 var(--text-body-sm)/1.6 var(--font-bmw);-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+a:hover{text-decoration:underline;text-underline-offset:4px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.rail{max-width:var(--page-max-width);margin:0 auto;padding-left:24px;padding-right:24px}
+.progress{position:fixed;top:0;left:0;right:0;height:2px;background:var(--color-carbon);transform:scaleX(0);transform-origin:0 50%;z-index:60}
+.demo{background:var(--color-fog);font-size:14px;padding:8px 24px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.demo a{text-decoration:underline}
+
+/* thanh đầu trắng, phẳng, không dính; logo + tagline trái, link + kính lúp phải */
+.nav{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:5px 24px;max-width:var(--page-max-width);margin:0 auto;min-height:64px}
+.lockup{display:flex;align-items:center;gap:12px}
+.lockup:hover{text-decoration:none}
+.lockup img{width:32px;height:32px}
+.nav nav{display:flex;align-items:center;gap:24px}
+.nav nav svg{display:block}
+.burger{display:none;padding:10px 0}
+.mnav{position:fixed;inset:0;z-index:40;background:var(--color-pure-white);padding:88px 24px 24px;display:flex;flex-direction:column}
+.mnav[hidden]{display:none}
+.mnav a{font:300 40px/1.3 var(--font-bmw);padding:8px 0}
+.mnav .mnav-x{position:absolute;top:24px;right:24px}
+
+/* ảnh tràn viền: ảnh là nội dung, không chữ / nút đè */
+.bleed{position:relative;overflow:hidden;height:88vh;min-height:520px;background:#0b0b0b}
+.bleed .pimg{position:absolute;inset:-10% 0;display:block}
+.bleed img{width:100%;height:100%;object-fit:cover}
+.bleed.short{height:72vh;min-height:420px}
+
+/* tiêu đề hiển thị lớn nhất trang: 60px / 300 */
+.display{padding-top:100px;padding-bottom:100px;text-align:center}
+.display h1{font:300 var(--text-display)/1.3 var(--font-bmw);letter-spacing:0}
+.arrow{display:inline-flex;gap:8px;align-items:baseline;font-size:16px;margin-top:40px}
+.arrow::before{content:"›";font-size:20px;line-height:1}
+
+/* sản phẩm: tấm ảnh studio tối tràn viền + dải phim ảnh thật + chữ căn giữa */
+.prod{padding-bottom:100px}
+.pg-main{position:relative;height:84vh;min-height:520px;background:#0a0a0a;overflow:hidden}
+.pg-main img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pg-main img.fit-contain{object-fit:contain}
+.pg-main img.fit-cover{object-fit:cover}
+.pg-t{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;margin-top:4px}
+.pg-t button{position:relative;opacity:.75;transition:opacity .4s;padding-bottom:7px}
+.pg-t button > img{aspect-ratio:16/9;background:#0a0a0a}
+.pg-t button::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--color-carbon);transform:scaleX(0);transform-origin:left;transition:transform .6s var(--ease)}
+.pg-t button.on,.pg-t button:hover{opacity:1}
+.pg-t button.on::after{transform:scaleX(1)}
+.pg-t img{width:100%;height:100%;object-fit:cover}
+.prod .txt{text-align:center;padding-top:var(--section-gap)}
+.prod .cat{font-size:16px}
+.prod h2{font:300 40px/1.3 var(--font-bmw);margin-top:4px}
+.prod .body{font-size:var(--text-body);line-height:1.63;max-width:58ch;margin:16px auto 0}
+.prod .spec{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 32px;margin-top:24px;font-size:16px}
+.prod .spec b{font-weight:700}
+
+/* danh mục dòng máy: một cột chữ lớn căn giữa, không thẻ, không viền */
+.fog{background:var(--color-fog)}
+.sec{padding-top:100px;padding-bottom:100px;text-align:center}
+.label{font:700 var(--text-body)/1.3 var(--font-bmw)}
+.sec p.body{font-size:var(--text-body);line-height:1.63;max-width:58ch;margin:16px auto 0}
+.tabs{display:flex;justify-content:center;gap:24px;margin-top:32px;flex-wrap:wrap}
+.tabs button{font-size:16px;padding:4px 0;border-bottom:1px solid transparent}
+.tabs button.on{font-weight:700;border-bottom-color:var(--color-carbon)}
+.tabs button:hover{text-decoration:underline;text-underline-offset:4px}
+.models{margin-top:56px;display:grid;gap:40px}
+.model[hidden]{display:none}
+.model .n{font:300 40px/1.3 var(--font-bmw)}
+.model .s{font-size:16px;margin-top:4px}
+.model .s b{font-weight:700}
+
+/* chú thích dưới ảnh chi tiết */
+.cap{padding-top:var(--section-gap);padding-bottom:100px;text-align:center}
+
+/* liên hệ */
+.contact dl{display:grid;gap:16px;margin:32px auto 0;max-width:640px;font-size:16px}
+.contact dt{font-weight:700}
+form{display:grid;gap:20px;max-width:640px;margin:48px auto 0;text-align:left}
+label{display:grid;gap:6px;font-size:16px}
+input,textarea{font:400 16px/1.5 var(--font-bmw);border:0;border-bottom:1px solid var(--color-concrete);padding:10px 0;background:transparent;color:var(--color-carbon);outline:none}
+input:focus,textarea:focus{border-bottom-color:var(--color-carbon)}
+textarea{min-height:96px;resize:vertical}
+form .arrow{margin-top:8px;justify-self:center}
+form .arrow:hover{text-decoration:underline;text-underline-offset:4px}
+
+/* chân trang carbon */
+footer{background:var(--color-carbon);color:var(--color-pure-white);padding:56px 0}
+.lang{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:40px}
+.fcols{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.fcols ul{list-style:none;display:grid;gap:10px;margin-top:10px}
+footer a:hover{text-decoration:none}
+.legal{margin-top:40px;color:var(--color-concrete);font-size:14px}
+.totop{position:fixed;right:20px;bottom:20px;z-index:25;width:48px;height:48px;background:var(--color-carbon);color:#fff;font-size:18px;opacity:0;transform:translateY(16px);pointer-events:none;transition:opacity .4s,transform .5s var(--ease)}
+.totop.show{opacity:1;transform:none;pointer-events:auto}
+
+@media (max-width:900px){
+  .nav nav{display:none}
+  .burger{display:block}
+  .display{padding-top:56px;padding-bottom:56px}
+  .display h1{font-size:40px}
+  .bleed{height:60vh;min-height:340px}
+  .bleed.short{height:48vh;min-height:300px}
+  .pg-main{height:auto;min-height:0;aspect-ratio:4/3}
+  .pg-main img.fit-contain{object-fit:cover}   /* máy chiếm ≤70% bề ngang ảnh studio → khung 4:3 vẫn giữ trọn máy */
+  .prod{padding-bottom:56px}
+  .sec{padding-top:56px;padding-bottom:56px}
+  .cap{padding-bottom:56px}
+  .models{gap:28px}
+  .fcols{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+<script>{{INC:_motion.js}}</script>
+<script>
+OTLM.start({
+  preset:{ease:"cubic-bezier(.16,1,.3,1)",dur:1400,d:20,stagger:90,each:26,cover:"#ffffff",filterFx:"rise"},
+  progress:".progress",
+  parallax:[[".bleed .pimg",.12,1]],
+  rules:[
+    [".lockup","fade",{dur:900}],
+    [".nav nav a","fade",{stagger:80,delay:200}],
+    [".bleed","fade",{dur:1600}],
+    [".display h1","rise",{split:"chars",each:24,d:18}],
+    [".display .arrow","fade",{delay:900}],
+    [".pg-main","fade",{dur:1600}],
+    [".pg-t button","rise",{d:14,stagger:90,delay:200}],
+    [".prod .cat","fade",{}],
+    [".prod h2","rise",{split:"chars",each:34,delay:120,d:16}],
+    [".prod .body","rise",{delay:350}],
+    [".prod .spec > span","rise",{d:10,stagger:80,delay:450}],
+    [".prod .arrow","fade",{delay:700}],
+    [".sec .label","rise",{d:12}],
+    [".sec p.body","rise",{delay:200}],
+    [".tabs button","fade",{stagger:70,delay:150}],
+    [".model .n","rise",{split:"chars",each:30,d:14}],
+    [".model .s","fade",{delay:300}],
+    [".cap .label","rise",{d:12}],
+    [".cap p.body","rise",{delay:200}],
+    [".contact dl > div","rise",{d:12,stagger:80}],
+    ["form label","rise",{d:12,stagger:80,delay:150}],
+    ["form .arrow","fade",{delay:450}],
+    [".lang a","fade",{stagger:60}],
+    [".fcols > div","rise",{d:12,stagger:80,delay:150}],
+    [".legal","fade",{delay:300}]
+  ]
+});
+</script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"></div>
+<div class="demo"><span>Bản demo 3/5 · phong cách <a href="https://styles.refero.design/style/b8899cbd-e2ca-4069-83cf-d8f8b0d71100" target="_blank" rel="noopener">BMW.com</a> — theo DESIGN.md</span><a href="index.html">← Xem cả 5 bản</a></div>
+
+<header class="nav">
+  <a class="lockup" href="#top"><img data-k="icon" alt="OTL"><span>Modern coffee roaster</span></a>
+  <nav><a href="#products">Products</a><a href="#models">Roasters</a><a href="#tech">Technology</a><a href="#contact">Contact</a>
+    <a href="#models" aria-label="Find your roaster"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#262626" stroke-width="1.5"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></a></nav>
+  <button class="burger" aria-expanded="false">Menu</button>
+</header>
+<div class="mnav" hidden><button class="mnav-x">Close</button><a href="#products">Products</a><a href="#models">Roasters</a><a href="#tech">Technology</a><a href="#contact">Contact</a></div>
+
+<main id="top">
+<div class="bleed"><span class="pimg"><img data-k="a48" alt="Roasted beans pouring from the drum into the cooling tray"></span></div>
+<div class="display rail">
+  <h1>The roaster. Reconsidered.</h1>
+  <a class="arrow" href="#models">Find your roaster</a>
+</div>
+
+<div id="products">
+<article class="prod" data-product>
+  <div class="pg"><div class="pg-main"><img class="fit-contain" data-k="d13" alt="OTL-06 roaster, studio photograph"></div>
+    <div class="pg-t"><button class="on" data-k="d13" data-fit="contain" aria-label="Studio photograph"><img data-k="d13" alt=""></button><button data-k="a278" data-fit="cover" aria-label="Photo 2"><img data-k="a278" alt=""></button><button data-k="a280" data-fit="cover" aria-label="Photo 3"><img data-k="a280" alt=""></button><button data-k="a277" data-fit="cover" aria-label="Photo 4"><img data-k="a277" alt=""></button></div></div>
+  <div class="txt rail"><div class="cat">Roaster · Professional</div><h2>OTL-06</h2>
+    <p class="body">A combination of advanced technology and solid design, optimised to save energy during operation.</p>
+    <div class="spec"><span><b>2–6</b> kg per batch</span><span><b>8–24</b> kg per hour</span><span><b>15</b> kW burner</span><span><b>2.8</b> kWh electricity</span></div>
+    <a class="arrow" href="#contact">Request a quote</a></div>
+</article>
+<article class="prod" data-product>
+  <div class="pg"><div class="pg-main"><img class="fit-contain" data-k="d240" alt="OTL-03 roaster, studio photograph"></div>
+    <div class="pg-t"><button class="on" data-k="d240" data-fit="contain" aria-label="Studio photograph"><img data-k="d240" alt=""></button><button data-k="a233" data-fit="cover" aria-label="Photo 2"><img data-k="a233" alt=""></button><button data-k="a231" data-fit="cover" aria-label="Photo 3"><img data-k="a231" alt=""></button><button data-k="a239" data-fit="cover" aria-label="Photo 4"><img data-k="a239" alt=""></button></div></div>
+  <div class="txt rail"><div class="cat">Roaster · Café</div><h2>OTL-03</h2>
+    <p class="body">Robust design and advanced features for precise, consistent roasting in every batch.</p>
+    <div class="spec"><span><b>1–3</b> kg per batch</span><span><b>4–12</b> kg per hour</span><span><b>10</b> kW burner</span><span><b>1.5</b> kWh electricity</span></div>
+    <a class="arrow" href="#contact">Request a quote</a></div>
+</article>
+<article class="prod" data-product>
+  <div class="pg"><div class="pg-main"><img class="fit-contain" data-k="d37" alt="OD destoner, studio photograph"></div>
+    <div class="pg-t"><button class="on" data-k="d37" data-fit="contain" aria-label="Studio photograph"><img data-k="d37" alt=""></button><button data-k="a36" data-fit="cover" aria-label="Photo 2"><img data-k="a36" alt=""></button><button data-k="a186" data-fit="cover" aria-label="Photo 3"><img data-k="a186" alt=""></button><button data-k="a200" data-fit="cover" aria-label="Photo 4"><img data-k="a200" alt=""></button></div></div>
+  <div class="txt rail"><div class="cat">Destoner · OD-05 to OD-60</div><h2>OD Destoner</h2>
+    <p class="body">Separates stones and heavy impurities from roasted beans with an advanced air-suction system and adjustable airflow.</p>
+    <div class="spec"><span><b>15–20</b> kg per batch, OD-15</span><span><b>1.5</b> kW power</span><span><b>220</b> V single phase</span></div>
+    <a class="arrow" href="#contact">Enquire</a></div>
+</article>
+<article class="prod" data-product>
+  <div class="pg"><div class="pg-main"><img class="fit-contain" data-k="d78" alt="OTL silo, studio photograph"></div>
+    <div class="pg-t"><button class="on" data-k="d78" data-fit="contain" aria-label="Studio photograph"><img data-k="d78" alt=""></button><button data-k="a221" data-fit="cover" aria-label="Photo 2"><img data-k="a221" alt=""></button><button data-k="a71" data-fit="cover" aria-label="Photo 3"><img data-k="a71" alt=""></button><button data-k="a76" data-fit="cover" aria-label="Photo 4"><img data-k="a76" alt=""></button></div></div>
+  <div class="txt rail"><div class="cat">Storage</div><h2>OTL-Silo</h2>
+    <p class="body">Modular, airtight storage for green and roasted beans, with automatic conveying and an adjustable discharge valve.</p>
+    <div class="spec"><span><b>Modular</b> clusters</span><span><b>Airtight</b> storage</span><span><b>Automatic</b> conveying</span></div>
+    <a class="arrow" href="#contact">Enquire</a></div>
+</article>
+<article class="prod" data-product>
+  <div class="pg"><div class="pg-main"><img class="fit-contain" data-k="d27" alt="AB afterburner, studio render"></div>
+    <div class="pg-t"><button class="on" data-k="d27" data-fit="contain" aria-label="Studio render 1"><img data-k="d27" alt=""></button><button data-k="d180" data-fit="contain" aria-label="Studio render 2"><img data-k="d180" alt=""></button><button data-k="d181" data-fit="contain" aria-label="Studio render 3"><img data-k="d181" alt=""></button></div></div>
+  <div class="txt rail"><div class="cat">Afterburner · AB-15 to AB-120</div><h2>AB Afterburner</h2>
+    <p class="body">Treats smoke and odours from industrial roasting. Ecoflam (Italy) 2-stage burner, Delta controller, Omron sensor.</p>
+    <div class="spec"><span><b>15–30</b> kg roasters, AB-30</span><span><b>12–70</b> kW heating, AB-30</span></div>
+    <a class="arrow" href="#contact">Enquire</a></div>
+</article>
+</div>
+
+<section class="sec fog" id="models"><div class="rail">
+  <div class="label">Find your roaster</div>
+  <p class="body">Eight capacities, from laboratory roasters to full-circulation industrial systems.</p>
+  <div class="tabs" data-filter-group=".model"><button class="on" data-f="all" aria-pressed="true">All</button><button data-f="cafe" aria-pressed="false">Café</button><button data-f="com" aria-pressed="false">Commercial</button><button data-f="ind" aria-pressed="false">Industrial</button></div>
+  <div class="models">
+    <div class="model" data-c="cafe"><div class="n">OTL-1.2</div><div class="s"><b>0.5–1.2</b> kg per batch · <b>2–4</b> kg/h · <b>3</b> kW · 1PH 200–240V</div></div>
+    <div class="model" data-c="cafe"><div class="n">OTL-03</div><div class="s"><b>1–3</b> kg per batch · <b>4–12</b> kg/h · <b>10</b> kW · 1PH 200–240V</div></div>
+    <div class="model" data-c="cafe"><div class="n">OTL-06</div><div class="s"><b>2–6</b> kg per batch · <b>8–24</b> kg/h · <b>15</b> kW · 1PH 200–240V</div></div>
+    <div class="model" data-c="com"><div class="n">OTL-12</div><div class="s"><b>4–12</b> kg per batch · <b>20–48</b> kg/h · <b>40</b> kW · 1PH 200–240V</div></div>
+    <div class="model" data-c="com"><div class="n">OTL-15</div><div class="s"><b>5–15</b> kg per batch · <b>20–60</b> kg/h · <b>40</b> kW · 1PH 200–240V</div></div>
+    <div class="model" data-c="ind"><div class="n">OTL-30</div><div class="s"><b>10–30</b> kg per batch · <b>40–120</b> kg/h · <b>60</b> kW · 3PH 380–400V</div></div>
+    <div class="model" data-c="ind"><div class="n">OTL-60</div><div class="s"><b>30–60</b> kg per batch · <b>120–240</b> kg/h · <b>200</b> kW · 3PH 380–400V</div></div>
+    <div class="model" data-c="ind"><div class="n">OTL-120</div><div class="s"><b>60–120</b> kg per batch · <b>240–480</b> kg/h · <b>350</b> kW · 3PH 380–400V</div></div>
+  </div>
+</div></section>
+
+<div id="tech" class="bleed short"><span class="pimg"><img data-k="a160" alt="Burner flame seen through the sight glass"></span></div>
+<section class="cap rail"><div class="label">Heat you can see</div>
+  <p class="body">Multiple heating methods in a single roaster — intelligent hot-air flow combined with drum configurations — so every batch matches the last.</p></section>
+<div class="bleed short"><span class="pimg"><img data-k="a173" alt="Roast curve on the touchscreen"></span></div>
+<section class="cap rail"><div class="label">Every roast, recorded</div>
+  <p class="body">Management software records each roast and lets you set a profile for every bean. On the 60 and 120 kg systems, seven temperature points are monitored.</p></section>
+<div class="bleed short"><span class="pimg"><img data-k="a169" alt="Control buttons above freshly roasted beans"></span></div>
+<div class="bleed short" style="margin-top:4px"><span class="pimg"><img data-k="a214" alt="Drum front with sight glass"></span></div>
+<section class="cap rail"><div class="label">Full circulation</div>
+  <p class="body">On the industrial models, closed-loop airflow recycles exhaust air and an integrated afterburner cleans emissions, using up to 30% less energy.</p></section>
+<div class="bleed short"><span class="pimg"><img data-k="a59" alt="Brass cooling tray"></span></div>
+<section class="cap rail"><div class="label">Cooling tray</div>
+  <p class="body">Rapidly cools roasted beans to preserve flavour and prevent over-roasting.</p></section>
+<div class="bleed short"><span class="pimg"><img data-k="a121" alt="Roasted beans stirred in the cooling tray"></span></div>
+<div class="bleed short" style="margin-top:4px"><span class="pimg"><img data-k="a125" alt="Beans in the brass cooling tray"></span></div>
+
+<section class="sec contact" id="contact"><div class="rail">
+  <div class="label">Contact</div>
+  <dl>
+    <div><dt>Office</dt><dd>No. 44, N5 Street, Tan Phuoc Quarter, Tan Binh Ward, Di An City, Binh Duong, Vietnam</dd></div>
+    <div><dt>Factory</dt><dd>398/33 DT743B, Dong Thanh Hamlet, Tan Dong Hiep Ward, Di An City, Binh Duong</dd></div>
+    <div><dt>Phone · Email</dt><dd><a href="tel:+84936198938">+84 936 198 938</a> · <a href="mailto:otlpro.com@gmail.com">otlpro.com@gmail.com</a></dd></div>
+  </dl>
+  <form data-demo novalidate>
+    <label>Name<input></label>
+    <label>Phone*<input required></label>
+    <label>Email*<input type="email" required></label>
+    <label>Message*<textarea required></textarea></label>
+    <button class="arrow" type="submit">Submit information</button>
+  </form>
+</div></section>
+</main>
+
+<footer><div class="rail">
+  <nav class="lang" aria-label="Language"><a href="https://www.otlpro.com/" target="_blank" rel="noopener">English</a><a href="https://www.otlpro.com/vi" target="_blank" rel="noopener">Tiếng Việt</a><a href="https://www.otlpro.com/fr" target="_blank" rel="noopener">Français</a><a href="https://www.otlpro.com/pt" target="_blank" rel="noopener">Português</a></nav>
+  <div class="fcols">
+    <div>Products<ul><li><a href="#products">OTL-06</a></li><li><a href="#products">OTL-03</a></li><li><a href="#products">OD Destoner</a></li><li><a href="#products">OTL-Silo</a></li><li><a href="#products">AB Afterburner</a></li></ul></div>
+    <div>Quick links<ul><li><a href="#models">Find your roaster</a></li><li><a href="#tech">Technology</a></li><li><a href="#contact">Contact</a></li></ul></div>
+    <div>OTL Roaster<ul><li><a href="tel:+84936198938">+84 936 198 938</a></li><li><a href="mailto:otlpro.com@gmail.com">otlpro.com@gmail.com</a></li></ul></div>
+    <div>Visit us on<ul><li><a href="https://www.facebook.com/profile.php?id=61571855303133" target="_blank" rel="noopener">Facebook</a></li><li><a href="https://www.instagram.com/o_tesla_roaster/" target="_blank" rel="noopener">Instagram</a></li><li><a href="https://www.tiktok.com/@o_tesla_roaster" target="_blank" rel="noopener">TikTok</a></li><li><a href="https://www.youtube.com/@otesla577" target="_blank" rel="noopener">YouTube</a></li></ul></div>
+  </div>
+  <div class="legal">© OTL Industry Co., Ltd. · Demo layout, not the live site</div>
+</div></footer>
+<button class="totop" aria-label="Back to top">↑</button>
+{{IMGS}}
+</body>
+</html>

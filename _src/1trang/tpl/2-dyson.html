@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OTL Roaster — Demo 2 · Dyson</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* Dyson DESIGN.md — tokens */
+:root{
+  --color-cream-canvas:#fff8e6; --color-paper-white:#ffffff; --color-charcoal-ink:#333333; --color-graphite-body:#555555;
+  --color-silver-mute:#999999; --color-border-gray:#ebebeb; --color-rule-gray:#dadada; --color-lintel-black:#000000;
+  --color-signal-blue:#0066cc; --color-link-blue:#149ecc; --color-promotional-green:#79b928; --surface-frost-gray:#f8f8f8;
+  --font-dysonfutura:"Jost","Futura PT","Avenir Next",system-ui,sans-serif;
+  --radius-sm:2px; --radius-images:8px; --page-max-width:1200px; --ease:cubic-bezier(.25,.8,.25,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--color-cream-canvas);color:var(--color-charcoal-ink);font:400 16px/1.5 var(--font-dysonfutura);-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%}
+a{color:var(--color-signal-blue);text-decoration:none;transition:color .2s}
+a:hover{color:var(--color-link-blue)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.wrap{max-width:var(--page-max-width);margin:0 auto;padding:0 24px}
+[id]{scroll-margin-top:72px}   /* bấm menu: tiêu đề không bị thanh đen dính che */
+.progress{position:fixed;top:0;left:0;right:0;height:2px;background:var(--color-signal-blue);transform:scaleX(0);transform-origin:0 50%;z-index:60}
+.demo{background:var(--surface-frost-gray);color:var(--color-graphite-body);font-size:12px;line-height:1.67;padding:6px 0;border-bottom:1px solid var(--color-border-gray)}
+.demo .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* thanh đầu đen (lintel) */
+.lintel{background:var(--color-lintel-black);color:#fff;position:sticky;top:0;z-index:30}
+.lintel .wrap{display:flex;align-items:center;justify-content:space-between;height:56px;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;color:#fff;font:500 16px/1 var(--font-dysonfutura);letter-spacing:.06em}
+.brand:hover{color:#fff}
+.brand img{width:24px;height:24px;filter:grayscale(1) brightness(10)}
+.util{display:flex;gap:24px;font-size:14px}
+.util a{color:#fff}
+.util a:hover{color:#fff;text-decoration:underline;text-underline-offset:4px}
+.burger{display:none;width:44px;height:44px;position:relative}
+.burger i{position:absolute;left:12px;right:12px;height:1.5px;background:#fff;transition:transform .3s var(--ease),opacity .2s}
+.burger i:nth-child(1){top:16px}.burger i:nth-child(2){top:21.5px}.burger i:nth-child(3){top:27px}
+.burger[aria-expanded=true] i:nth-child(1){transform:translateY(5.5px) rotate(45deg)}
+.burger[aria-expanded=true] i:nth-child(2){opacity:0}
+.burger[aria-expanded=true] i:nth-child(3){transform:translateY(-5.5px) rotate(-45deg)}
+.mnav{position:fixed;inset:56px 0 0;z-index:29;background:var(--color-paper-white);padding:8px 24px 32px;display:flex;flex-direction:column;overflow:auto}
+.mnav[hidden]{display:none}
+.mnav a{font:300 24px/1.33 var(--font-dysonfutura);color:var(--color-charcoal-ink);padding:16px 0;border-bottom:1px solid var(--color-border-gray)}
+.mnav .mnav-x{align-self:flex-end;font-size:14px;color:var(--color-graphite-body);padding:12px 0}
+
+/* thanh thông báo xanh */
+.announce{background:var(--color-signal-blue);color:#fff;font-size:14px;text-align:center}
+.announce .wrap{min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+.announce a{color:#fff;text-decoration:underline;text-underline-offset:3px}
+.announce a:hover{color:#fff}
+
+/* hàng danh mục trắng + ô tìm */
+.cats{background:var(--color-paper-white);border-bottom:1px solid var(--color-border-gray)}
+.cats .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:52px}
+.cats nav{display:flex;gap:16px;font-size:14px;overflow-x:auto;scrollbar-width:none;white-space:nowrap}
+.cats nav button{color:var(--color-charcoal-ink);padding:14px 0}
+.cats nav button.on{font-weight:500}
+.search{display:flex;align-items:center;gap:8px;border:1px solid var(--color-border-gray);border-radius:var(--radius-sm);padding:0 12px;background:#fff;min-width:260px}
+.search svg{flex:none}
+.search input{border:0;outline:0;font:400 14px/1 var(--font-dysonfutura);padding:10px 0;width:100%;color:var(--color-charcoal-ink);background:transparent}
+.search input::placeholder{color:var(--color-silver-mute)}
+.search:focus-within{border-color:var(--color-charcoal-ink)}
+
+/* nút */
+.btn-green{display:inline-block;background:var(--color-promotional-green);color:#fff;font:500 14px/1 var(--font-dysonfutura);padding:12px 24px;border-radius:var(--radius-sm);transition:filter .2s}
+.btn-green:hover{color:#fff;filter:brightness(.92)}
+.btn-green.full{display:block;width:100%;text-align:center;padding:12px 16px}
+
+/* hero tách đôi 1:2 */
+.hero{display:grid;grid-template-columns:1fr 2fr;gap:48px;align-items:center;padding-top:48px;padding-bottom:64px}
+.hero h1{font:300 36px/1.22 var(--font-dysonfutura);color:var(--color-charcoal-ink)}
+.hero p{font-size:18px;line-height:1.44;color:var(--color-graphite-body);margin:16px 0 28px}
+.hero .row{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.hero .row a.txt{font-size:14px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,240px);gap:8px}
+.tile{border-radius:var(--radius-images);overflow:hidden;background:var(--color-paper-white)}
+.tile img{width:100%;height:100%;object-fit:cover;transition:transform .8s var(--ease)}
+.tile:hover img{transform:scale(1.04)}
+
+section{padding:64px 0}
+.band-white{background:var(--color-paper-white)}
+.band-frost{background:var(--surface-frost-gray)}
+.shead{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;padding-bottom:16px;position:relative;margin-bottom:32px}
+.shead .rule{position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--color-border-gray);transform-origin:0 50%}
+.shead h2{font:300 28px/1.3 var(--font-dysonfutura);color:var(--color-charcoal-ink)}
+.shead p{font-size:14px;line-height:1.56;color:var(--color-graphite-body)}
+
+/* thẻ sản phẩm */
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.pcard{background:var(--color-paper-white);display:flex;flex-direction:column;padding:16px 16px 24px}
+.pcard[hidden]{display:none}
+.pg-main{position:relative;aspect-ratio:1/1;border-radius:var(--radius-images);overflow:hidden;background:var(--color-paper-white)}
+.pg-main img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:6%}
+.pg-main img.fit-contain{object-fit:contain;padding:6%}
+.pg-main img.fit-cover{object-fit:cover;padding:0}
+.pg-t{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.pg-t button{aspect-ratio:1/1;border-radius:var(--radius-images);overflow:hidden;background:var(--surface-frost-gray);border:1px solid var(--color-border-gray);transition:border-color .2s}
+.pg-t button.on,.pg-t button:hover{border-color:var(--color-charcoal-ink)}
+.pg-t img{width:100%;height:100%;object-fit:cover}
+.pg-t img.fit-contain{object-fit:contain;padding:6px}
+.pcard .meta{display:flex;flex-direction:column;gap:4px;margin:16px 0 20px;flex:1}
+.pcard .cat{font-size:12px;line-height:1.67;color:var(--color-silver-mute);letter-spacing:.08em;text-transform:uppercase}
+.pcard h3{font:400 16px/1.5 var(--font-dysonfutura);color:var(--color-charcoal-ink)}
+.pcard .spec{font-size:14px;line-height:1.56;color:var(--color-graphite-body)}
+.price{font:400 18px/1.44 var(--font-dysonfutura);color:var(--color-signal-blue);margin-top:4px}
+.empty{grid-column:1/-1;padding:32px 0;color:var(--color-graphite-body);font-size:16px}
+
+/* bảng so sánh */
+.cmp{overflow-x:auto}
+.cmp table{width:100%;border-collapse:collapse;min-width:760px;font-size:14px;line-height:1.56}
+.cmp th{font-weight:500;text-align:left;padding:12px 16px 12px 0;border-bottom:1px solid var(--color-rule-gray);color:var(--color-charcoal-ink)}
+.cmp td{padding:16px 16px 16px 0;border-bottom:1px solid var(--color-border-gray);color:var(--color-graphite-body);font-variant-numeric:tabular-nums}
+.cmp td:first-child{color:var(--color-charcoal-ink);font-size:16px}
+
+/* khối nội dung 2 cột */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.two + .two{margin-top:64px}
+.two.rev .pic{order:2}
+.two .pic{border-radius:var(--radius-images);overflow:hidden;aspect-ratio:4/3}
+.two .pic img{width:100%;height:100%;object-fit:cover}
+.two h2{font:300 32px/1.25 var(--font-dysonfutura);color:var(--color-charcoal-ink);margin-bottom:16px}
+.two p.lead{color:var(--color-graphite-body)}
+.feat{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:28px}
+.feat h4{font:500 16px/1.5 var(--font-dysonfutura);color:var(--color-charcoal-ink)}
+.feat p{font-size:14px;line-height:1.56;color:var(--color-graphite-body)}
+
+/* phụ tùng */
+.parts{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.part{background:var(--color-paper-white);padding:12px 12px 16px}
+.part .ph{aspect-ratio:1/1;border-radius:var(--radius-images);overflow:hidden}
+.part img{width:100%;height:100%;object-fit:cover;transition:transform .8s var(--ease)}
+.part:hover img{transform:scale(1.05)}
+.part h4{font:400 16px/1.5 var(--font-dysonfutura);margin-top:12px}
+.part a{font-size:14px}
+
+.prom{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--color-border-gray);border-bottom:1px solid var(--color-border-gray)}
+.prom div{padding:24px 20px;border-right:1px solid var(--color-border-gray)}
+.prom div:last-child{border-right:0}
+.prom h4{font:500 14px/1.56 var(--font-dysonfutura)}
+.prom p{font-size:14px;line-height:1.56;color:var(--color-graphite-body)}
+
+.contact{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.panel{background:var(--color-paper-white);padding:24px}
+.panel h3{font:300 24px/1.33 var(--font-dysonfutura);margin-bottom:16px}
+.panel dl{display:grid;grid-template-columns:96px 1fr;gap:12px 16px;font-size:14px;line-height:1.56}
+.panel dt{color:var(--color-silver-mute)}
+.panel dd{color:var(--color-graphite-body)}
+form{display:grid;gap:12px}
+input,textarea,select{font:400 14px/1.4 var(--font-dysonfutura);padding:10px 12px;border:1px solid var(--color-border-gray);border-radius:var(--radius-sm);background:#fff;color:var(--color-charcoal-ink);width:100%}
+input::placeholder,textarea::placeholder{color:var(--color-silver-mute)}
+input:focus,textarea:focus,select:focus{outline:0;border-color:var(--color-charcoal-ink)}
+textarea{min-height:110px}
+form .btn-green{justify-self:start;border:0}
+
+footer{background:var(--color-lintel-black);color:#bdbdbd;padding:48px 0 24px;font-size:14px;line-height:1.56}
+footer .cols{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:24px}
+footer h5{color:#fff;font:500 14px/1.56 var(--font-dysonfutura);margin-bottom:12px}
+footer a{color:#bdbdbd}
+footer a:hover{color:#fff}
+footer li{list-style:none;margin-bottom:8px}
+footer .legal{border-top:1px solid #222;margin-top:40px;padding-top:20px;font-size:12px}
+.totop{position:fixed;right:20px;bottom:20px;z-index:25;width:44px;height:44px;border-radius:var(--radius-sm);background:var(--color-lintel-black);color:#fff;font-size:16px;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .3s,transform .3s var(--ease)}
+.totop.show{opacity:1;transform:none;pointer-events:auto}
+
+@media (max-width:980px){
+  .wrap{padding:0 16px}
+  .util{display:none}
+  .burger{display:block}
+  .cats .wrap{flex-direction:column;align-items:stretch;gap:0;padding-bottom:12px}
+  .search{min-width:0}
+  .hero{grid-template-columns:1fr;gap:32px;padding-top:32px;padding-bottom:48px}
+  .tiles{grid-template-rows:repeat(2,140px)}
+  section{padding:48px 0}
+  .pgrid{grid-template-columns:1fr}
+  .two,.two.rev{grid-template-columns:1fr;gap:24px}
+  .two.rev .pic{order:0}
+  .feat{grid-template-columns:1fr}
+  .parts{grid-template-columns:1fr 1fr}
+  .prom{grid-template-columns:1fr 1fr}
+  .prom div:nth-child(2){border-right:0}
+  .prom div{border-bottom:1px solid var(--color-border-gray)}
+  .contact{grid-template-columns:1fr}
+  .panel dl{grid-template-columns:1fr;gap:0}.panel dd{margin-bottom:12px}
+  footer .cols{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+<script>{{INC:_motion.js}}</script>
+<script>
+OTLM.start({
+  preset:{ease:"cubic-bezier(.25,.8,.25,1)",dur:700,d:16,stagger:60,each:40,cover:"#fff8e6",filterFx:"rise"},
+  progress:".progress",
+  rules:[
+    [".brand","fade",{dur:600}],
+    [".util a","fade",{stagger:70,delay:150}],
+    [".announce .wrap > *","fall",{d:8,stagger:80,delay:200}],
+    [".cats nav button","fade",{stagger:50,delay:250}],
+    [".search","fade",{delay:450}],
+    [".hero h1","rise",{split:"words",each:60,delay:300}],
+    [".hero p","rise",{delay:600}],
+    [".hero .row > *","rise",{stagger:90,delay:750}],
+    [".tile","zoom",{stagger:80,delay:250,dur:900}],
+    [".shead .rule","draw",{dur:1000}],
+    [".shead h2","rise",{split:"words",each:50}],
+    [".shead p","fade",{delay:200}],
+    [".pcard","rise",{d:24,stagger:90}],
+    [".pcard .pg-main","zoom",{stagger:90,delay:100,dur:900}],
+    [".pcard .pg-t button","rise",{d:8,stagger:40,delay:300}],
+    [".pcard .meta > *","rise",{d:8,stagger:50,delay:350}],
+    [".pcard .btn-green","rise",{d:8,stagger:90,delay:500}],
+    [".cmp thead tr","fade",{}],
+    [".cmp tbody tr","rise",{d:10,stagger:50}],
+    [".two .pic","zoom",{dur:1000}],
+    [".two h2","rise",{split:"words",each:50,delay:150}],
+    [".two p.lead","rise",{delay:300}],
+    [".feat > div","rise",{stagger:80,delay:400}],
+    [".part","rise",{d:20,stagger:80}],
+    [".prom > div","rise",{d:12,stagger:80}],
+    [".panel","rise",{d:20,stagger:120}],
+    [".panel dl > *","fade",{stagger:30,delay:200}],
+    ["form > *","rise",{d:8,stagger:50,delay:200}],
+    ["footer .cols > div","rise",{d:12,stagger:80}],
+    ["footer .legal","fade",{}]
+  ]
+});
+</script>
+</head>
+<body>
+<div class="progress" aria-hidden="true"></div>
+<div class="demo"><div class="wrap"><span>Bản demo 2/5 · phong cách <a href="https://styles.refero.design/style/96845df2-7ddb-420a-814e-c339f95a6554" target="_blank" rel="noopener">Dyson</a> — theo DESIGN.md</span><a href="index.html">← Xem cả 5 bản</a></div></div>
+
+<header class="lintel"><div class="wrap">
+  <a class="brand" href="#top"><img data-k="icon" alt="">OTL ROASTER</a>
+  <nav class="util"><a href="#support">Support</a><a href="#parts">Spare parts</a><a href="tel:+84936198938">+84 936 198 938</a></nav>
+  <button class="burger" aria-label="Menu" aria-expanded="false"><i></i><i></i><i></i></button>
+</div></header>
+<div class="mnav" hidden><button class="mnav-x">Close ✕</button><a href="#products">Products</a><a href="#compare">Compare roasters</a><a href="#tech">Technology</a><a href="#parts">Spare parts</a><a href="#support">Support</a></div>
+<div class="announce"><div class="wrap"><span>O Tesla is now OTL — the same engineering under a new name since 2025.</span><a href="#story">Read our story</a></div></div>
+<div class="cats"><div class="wrap">
+  <nav data-filter-group=".pcard" aria-label="Product categories">
+    <button class="on" data-f="all" aria-pressed="true">All products</button><button data-f="roaster" aria-pressed="false">Roasters</button><button data-f="destoner" aria-pressed="false">Destoners</button><button data-f="afterburner" aria-pressed="false">Afterburners</button><button data-f="storage" aria-pressed="false">Storage</button>
+  </nav>
+  <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.2-4.2"/></svg><input id="q" type="search" placeholder="Search products" aria-label="Search products"></label>
+</div></div>
+
+<main id="top">
+<div class="wrap hero">
+  <div>
+    <h1>Engineered to roast. Built to last.</h1>
+    <p>Modern coffee roasters with precise temperature and airflow control — and engineers who answer when you call.</p>
+    <div class="row"><a class="btn-green" href="#products">Explore products</a><a class="txt" href="#support">Talk to an engineer</a></div>
+  </div>
+  <div class="tiles">
+    <div class="tile"><img data-k="a13" alt="White OTL roaster"></div>
+    <div class="tile"><img data-k="a7" alt="Drum front fittings with wooden handles"></div>
+    <div class="tile"><img data-k="a240" alt="OTL-03 roaster"></div>
+    <div class="tile"><img data-k="a8" alt="Control panel and cooling tray"></div>
+    <div class="tile"><img data-k="a272" alt="Touchscreen on stainless body"></div>
+    <div class="tile"><img data-k="a5" alt="White cabinet detail"></div>
+  </div>
+</div>
+
+<section class="band-white" id="products"><div class="wrap">
+  <div class="shead"><h2>Five products, one line</h2><p>Filter by category or search. Select a thumbnail to change the photo.</p><span class="rule"></span></div>
+  <div class="pgrid">
+    <article class="pcard" data-product data-c="roaster" data-name="otl-06 roaster professional 6 kg">
+      <div class="pg"><div class="pg-main"><img class="fit-contain" data-k="s13" alt="OTL-06 roaster"></div>
+        <div class="pg-t"><button class="on" data-k="s13" data-fit="contain" aria-label="Photo 1"><img class="fit-contain" data-k="s13" alt=""></button><button data-k="a278" data-fit="cover" aria-label="Photo 2"><img data-k="a278" alt=""></button><button data-k="a280" data-fit="cover" aria-label="Photo 3"><img data-k="a280" alt=""></button><button data-k="a277" data-fit="cover" aria-label="Photo 4"><img data-k="a277" alt=""></button></div></div>
+      <div class="meta"><span class="cat">Roaster · professional</span><h3>OTL-06</h3><span class="spec">2–6 kg/batch · 8–24 kg/h · 15 kW burner · 1PH 200–240V</span><span class="price">Price on request</span></div>
+      <a class="btn-green full" href="#support">Request a quote</a>
+    </article>
+    <article class="pcard" data-product data-c="roaster" data-name="otl-03 roaster cafe 3 kg">
+      <div class="pg"><div class="pg-main"><img class="fit-contain" data-k="c240" alt="OTL-03 roaster"></div>
+        <div class="pg-t"><button class="on" data-k="c240" data-fit="contain" aria-label="Photo 1"><img class="fit-contain" data-k="c240" alt=""></button><button data-k="a231" data-fit="cover" aria-label="Photo 2"><img data-k="a231" alt=""></button><button data-k="a238" data-fit="cover" aria-label="Photo 3"><img data-k="a238" alt=""></button><button data-k="a233" data-fit="cover" aria-label="Photo 4"><img data-k="a233" alt=""></button></div></div>
+      <div class="meta"><span class="cat">Roaster · café</span><h3>OTL-03</h3><span class="spec">1–3 kg/batch · 4–12 kg/h · 10 kW burner · 1PH 200–240V</span><span class="price">Price on request</span></div>
+      <a class="btn-green full" href="#support">Request a quote</a>
+    </article>
+    <article class="pcard" data-product data-c="destoner" data-name="od destoner 05 15 30 60">
+      <div class="pg"><div class="pg-main"><img class="fit-contain" data-k="c37" alt="OD destoner"></div>
+        <div class="pg-t"><button class="on" data-k="c37" data-fit="contain" aria-label="Photo 1"><img class="fit-contain" data-k="c37" alt=""></button><button data-k="a36" data-fit="cover" aria-label="Photo 2"><img data-k="a36" alt=""></button><button data-k="a186" data-fit="cover" aria-label="Photo 3"><img data-k="a186" alt=""></button><button data-k="a43" data-fit="cover" aria-label="Photo 4"><img data-k="a43" alt=""></button></div></div>
+      <div class="meta"><span class="cat">Destoner</span><h3>OD-05 · 15 · 30 · 60</h3><span class="spec">Air-suction separation · OD-15: 15–20 kg/batch, 1.5 kW</span><span class="price">Price on request</span></div>
+      <a class="btn-green full" href="#support">Request a quote</a>
+    </article>
+    <article class="pcard" data-product data-c="afterburner" data-name="ab afterburner smoke 15 30 60 120">
+      <div class="pg"><div class="pg-main"><img class="fit-contain" data-k="c27" alt="AB afterburner"></div>
+        <div class="pg-t"><button class="on" data-k="c27" data-fit="contain" aria-label="Photo 1"><img class="fit-contain" data-k="c27" alt=""></button><button data-k="a180" data-fit="contain" aria-label="Photo 2"><img class="fit-contain" data-k="a180" alt=""></button><button data-k="a156" data-fit="contain" aria-label="Photo 3"><img class="fit-contain" data-k="a156" alt=""></button><button data-k="a230" data-fit="contain" aria-label="Photo 4"><img class="fit-contain" data-k="a230" alt=""></button></div></div>
+      <div class="meta"><span class="cat">Afterburner</span><h3>AB-15 · 30 · 60 · 120</h3><span class="spec">Ecoflam (Italy) 2-stage burner · Delta controller · Omron sensor</span><span class="price">Price on request</span></div>
+      <a class="btn-green full" href="#support">Request a quote</a>
+    </article>
+    <article class="pcard" data-product data-c="storage" data-name="otl silo storage green roasted">
+      <div class="pg"><div class="pg-main"><img class="fit-contain" data-k="s78" alt="OTL silo"></div>
+        <div class="pg-t"><button class="on" data-k="s78" data-fit="contain" aria-label="Photo 1"><img class="fit-contain" data-k="s78" alt=""></button><button data-k="a221" data-fit="cover" aria-label="Photo 2"><img data-k="a221" alt=""></button><button data-k="a71" data-fit="cover" aria-label="Photo 3"><img data-k="a71" alt=""></button><button data-k="a76" data-fit="cover" aria-label="Photo 4"><img data-k="a76" alt=""></button></div></div>
+      <div class="meta"><span class="cat">Storage</span><h3>OTL-Silo</h3><span class="spec">Modular, airtight clusters · automatic conveying</span><span class="price">Price on request</span></div>
+      <a class="btn-green full" href="#support">Request a quote</a>
+    </article>
+    <p class="empty" hidden>No products match your search.</p>
+  </div>
+</div></section>
+
+<section id="compare"><div class="wrap">
+  <div class="shead"><h2>Compare all eight roasters</h2><p>Figures from each OTL product page.</p><span class="rule"></span></div>
+  <div class="cmp"><table>
+    <thead><tr><th>Model</th><th>Batch</th><th>Capacity</th><th>Burner</th><th>Electricity</th><th>Power supply</th></tr></thead>
+    <tbody>
+      <tr><td>OTL-1.2</td><td>0.5–1.2 kg</td><td>2–4 kg/h</td><td>3 kW</td><td>1 kWh</td><td>1PH 200–240V</td></tr>
+      <tr><td>OTL-03</td><td>1–3 kg</td><td>4–12 kg/h</td><td>10 kW</td><td>1.5 kWh</td><td>1PH 200–240V</td></tr>
+      <tr><td>OTL-06</td><td>2–6 kg</td><td>8–24 kg/h</td><td>15 kW</td><td>2.8 kWh</td><td>1PH 200–240V</td></tr>
+      <tr><td>OTL-12</td><td>4–12 kg</td><td>20–48 kg/h</td><td>40 kW</td><td>4 kWh</td><td>1PH 200–240V</td></tr>
+      <tr><td>OTL-15</td><td>5–15 kg</td><td>20–60 kg/h</td><td>40 kW</td><td>4 kWh</td><td>1PH 200–240V</td></tr>
+      <tr><td>OTL-30</td><td>10–30 kg</td><td>40–120 kg/h</td><td>60 kW</td><td>5.8 kWh</td><td>3PH 380–400V</td></tr>
+      <tr><td>OTL-60</td><td>30–60 kg</td><td>120–240 kg/h</td><td>200 kW</td><td>17.5 kWh</td><td>3PH 380–400V</td></tr>
+      <tr><td>OTL-120</td><td>60–120 kg</td><td>240–480 kg/h</td><td>350 kW</td><td>19.5 kWh</td><td>3PH 380–400V</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<section class="band-white" id="tech"><div class="wrap">
+  <div class="two">
+    <div class="pic"><img data-k="a148" alt="Delta touchscreen control panel"></div>
+    <div><h2>Every roast, recorded.</h2><p class="lead">Management software that supports the automation of the entire roasting process.</p>
+      <div class="feat">
+        <div><h4>Smart automation</h4><p>Record and optimise each roast with high precision.</p></div>
+        <div><h4>Personal profiles</h4><p>Set profiles to suit each roaster’s style and needs.</p></div>
+        <div><h4>Multiple heating methods</h4><p>Intelligent hot-air flow combined with drum configurations.</p></div>
+        <div><h4>Seven temperature points</h4><p>Bean to afterburner, on the 60 &amp; 120 kg systems.</p></div>
+      </div></div>
+  </div>
+  <div class="two rev" id="story">
+    <div class="pic"><img data-k="a0" alt="White OTL roaster with destoner in the factory"></div>
+    <div><h2>From O Tesla to OTL.</h2><p class="lead">Founded in 2018 in Vietnam, exported to the EU and Asia, renamed OTL in 2025 — the same engineering, a more professional line.</p>
+      <div class="feat">
+        <div><h4>Full-circulation airflow</h4><p>Up to 30% less energy on the 60 &amp; 120 kg models.</p></div>
+        <div><h4>Integrated afterburner</h4><p>Cleans exhaust gases for environmental compliance.</p></div>
+        <div><h4>Powder-coated steel</h4><p>Durable construction, designed and built in Vietnam.</p></div>
+        <div><h4>Easy to maintain</h4><p>Modular design simplifies maintenance and upgrades.</p></div>
+      </div></div>
+  </div>
+</div></section>
+
+<section id="parts"><div class="wrap">
+  <div class="shead"><h2>Genuine spare parts</h2><p>Replacement parts designed to match every OTL roaster.</p><span class="rule"></span></div>
+  <div class="parts">
+    <div class="part"><div class="ph"><img data-k="a6" alt="Drum drive motor"></div><h4>Drive motor</h4><a href="#support">Ask about this part</a></div>
+    <div class="part"><div class="ph"><img data-k="a55" alt="Sight glass"></div><h4>Sight glass</h4><a href="#support">Ask about this part</a></div>
+    <div class="part"><div class="ph"><img data-k="a209" alt="Cooling tray with stirring arms"></div><h4>Cooling tray</h4><a href="#support">Ask about this part</a></div>
+    <div class="part"><div class="ph"><img data-k="a269" alt="Drum front handles"></div><h4>Drum front fittings</h4><a href="#support">Ask about this part</a></div>
+  </div>
+  <div class="prom" style="margin-top:48px">
+    <div><h4>In-depth consulting</h4><p>We help you choose from mini to industrial roasters.</p></div>
+    <div><h4>Genuine spare parts</h4><p>Matched to every OTL model.</p></div>
+    <div><h4>Technical support</h4><p>Experts ready for any roaster-related issue.</p></div>
+    <div><h4>Made in Vietnam</h4><p>Factory in Di An City, Binh Duong.</p></div>
+  </div>
+</div></section>
+
+<section class="band-white" id="support"><div class="wrap">
+  <div class="shead"><h2>Talk to an OTL engineer</h2><span class="rule"></span></div>
+  <div class="contact">
+    <div class="panel" style="background:var(--color-cream-canvas)"><h3>Visit or call us</h3>
+      <dl>
+        <dt>Office</dt><dd>No. 44, N5 Street, Tan Phuoc Quarter, Tan Binh Ward, Di An City, Binh Duong, Vietnam</dd>
+        <dt>Factory</dt><dd>398/33 DT743B, Dong Thanh Hamlet, Tan Dong Hiep Ward, Di An City, Binh Duong</dd>
+        <dt>Phone</dt><dd><a href="tel:+84936198938">+84 936 198 938</a></dd>
+        <dt>Email</dt><dd><a href="mailto:otlpro.com@gmail.com">otlpro.com@gmail.com</a></dd>
+      </dl></div>
+    <div class="panel" style="background:var(--color-cream-canvas)"><h3>Request a quote</h3>
+      <form data-demo novalidate>
+        <input placeholder="Your name" aria-label="Your name"><input type="email" required placeholder="Email address*" aria-label="Email"><input required placeholder="Phone number*" aria-label="Phone">
+        <select aria-label="Product"><option>Product you need</option><option>OTL-06 roaster</option><option>OTL-03 roaster</option><option>OD destoner</option><option>AB afterburner</option><option>OTL-Silo</option></select>
+        <textarea required placeholder="Your message*" aria-label="Message"></textarea>
+        <button class="btn-green" type="submit">Submit information</button>
+      </form></div>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <div class="cols">
+    <div><h5>OTL Roaster</h5><p>Modern and advanced coffee roasters, made in Vietnam.</p></div>
+    <div><h5>Products</h5><ul><li><a href="#products">Roasters</a></li><li><a href="#products">Destoners</a></li><li><a href="#products">Afterburners</a></li><li><a href="#products">Silo</a></li></ul></div>
+    <div><h5>Support</h5><ul><li><a href="#support">Contact</a></li><li><a href="#parts">Spare parts</a></li><li><a href="#tech">Technology</a></li></ul></div>
+    <div><h5>Contact</h5><ul><li><a href="tel:+84936198938">+84 936 198 938</a></li><li><a href="mailto:otlpro.com@gmail.com">otlpro.com@gmail.com</a></li></ul></div>
+  </div>
+  <div class="legal">© OTL Industry Co., Ltd. · Demo layout, not the live site</div>
+</div></footer>
+<button class="totop" aria-label="Back to top">↑</button>
+{{IMGS}}
+<script>
+/* ô tìm kiếm: lọc thẻ theo chữ, cộng với danh mục đang chọn */
+(function(){
+  var q=document.getElementById('q'),cards=[].slice.call(document.querySelectorAll('.pcard')),empty=document.querySelector('.empty');
+  var btns=[].slice.call(document.querySelectorAll('.cats nav button'));
+  function apply(animate){
+    var cat=(document.querySelector('.cats nav button.on')||{}).dataset||{};cat=cat.f||'all';
+    var t=q.value.trim().toLowerCase(),k=0;
+    cards.forEach(function(c){
+      var ok=(cat==='all'||c.dataset.c===cat)&&(!t||c.dataset.name.indexOf(t)>-1||c.textContent.toLowerCase().indexOf(t)>-1);
+      var was=!c.hidden;c.hidden=!ok;
+      if(ok&&!was&&animate&&window.OTLM&&OTLM.anim)OTLM.anim(c,OTLM.FX.rise(12),420,k++*40,'cubic-bezier(.25,.8,.25,1)');
+    });
+    empty.hidden=cards.some(function(c){return !c.hidden});
+  }
+  q.addEventListener('input',function(){apply(true)});
+  /* chạy SAU bộ lọc chung để đọc đúng danh mục đang chọn và áp thêm từ khoá tìm */
+  btns.forEach(function(b){b.addEventListener('click',function(){setTimeout(function(){apply(false)},0)})});
+})();
+</script>
+</body>
+</html>
