@@ -3,6 +3,11 @@
 (function () {
   "use strict";
   function qa(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+  var reduceQuery = window.matchMedia ? matchMedia("(prefers-reduced-motion: reduce)") : null;
+  function reduced() { return !!(reduceQuery && reduceQuery.matches); }
+  if (reduceQuery) reduceQuery.addEventListener("change", function (e) {
+    if (e.matches) qa("model-viewer").forEach(function (mv) { mv.removeAttribute("auto-rotate"); });
+  });
 
   /* Băng chuyền: nút ‹ › cuộn đúng một thẻ, tự mờ khi chạm đầu/cuối */
   qa("[data-rail]").forEach(function (box) {
@@ -13,8 +18,8 @@
       prev.disabled = rail.scrollLeft < 4;
       next.disabled = rail.scrollLeft + rail.clientWidth > rail.scrollWidth - 4;
     }
-    prev.addEventListener("click", function () { rail.scrollBy({ left: -step(), behavior: "smooth" }); });
-    next.addEventListener("click", function () { rail.scrollBy({ left: step(), behavior: "smooth" }); });
+    prev.addEventListener("click", function () { rail.scrollBy({ left: -step(), behavior: reduced() ? "auto" : "smooth" }); });
+    next.addEventListener("click", function () { rail.scrollBy({ left: step(), behavior: reduced() ? "auto" : "smooth" }); });
     rail.addEventListener("scroll", function () { requestAnimationFrame(sync); }, { passive: true });
     addEventListener("resize", sync);
     sync();
@@ -53,10 +58,7 @@
   qa("[data-theme-toggle]").forEach(function (b) {
     b.addEventListener("click", function () { if (window.OTLTheme) { OTLTheme.toggle(); syncTheme(); } });
   });
-  if (window.matchMedia) {
-    var mq = matchMedia("(prefers-color-scheme: dark)");
-    if (mq.addEventListener) mq.addEventListener("change", function () { setTimeout(syncTheme, 0); });
-  }
+  if (!document.documentElement.dataset.theme) document.documentElement.dataset.theme = "dark";
   syncTheme();
 
   /* Nút chat nổi: mở/đóng bảng WhatsApp · Zalo · Messenger; bấm ra ngoài hoặc Esc thì đóng */
@@ -121,28 +123,72 @@
     });
   });
 
-  /* Xem 3D: bấm mới tải model-viewer (Google) + file .glb đã nén — trang không nặng thêm khi chưa bấm */
-  qa(".v3d").forEach(function (box) {
-    var b = box.querySelector("button");
-    b.addEventListener("click", function () {
-      b.disabled = true; b.firstChild.textContent = "Đang tải 3D… ";
-      if (!customElements.get("model-viewer")) {
-        var s = document.createElement("script"); s.type = "module";
-        s.src = "https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js";
-        document.head.appendChild(s);
+  /* Xem 3D: dùng chung một lần tải model-viewer; lỗi mạng hoặc treo đều trả nút về trạng thái thử lại. */
+  var modelViewerPromise = null, modelViewerScript = null, modelViewerLoadNo = 0;
+  function loadModelViewer() {
+    if (customElements.get("model-viewer")) return Promise.resolve();
+    if (modelViewerPromise) return modelViewerPromise;
+    modelViewerPromise = new Promise(function (resolve, reject) {
+      var done = false;
+      if (modelViewerScript) modelViewerScript.remove();
+      var s = document.createElement("script"), timer;
+      modelViewerScript = s;
+      s.type = "module"; s.dataset.otlModelViewer = "";
+      s.src = "https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js?otl-retry=" + (++modelViewerLoadNo);
+      function finish(err) {
+        if (done) return;
+        done = true; clearTimeout(timer); s.onload = s.onerror = null;
+        if (err) { s.remove(); modelViewerScript = null; reject(err); }
+        else resolve();
       }
-      customElements.whenDefined("model-viewer").then(function () {
+      s.onerror = function () { finish(new Error("Không tải được thư viện 3D.")); };
+      s.onload = function () {
+        customElements.whenDefined("model-viewer").then(function () { finish(); }, function () { finish(new Error("Không khởi tạo được trình xem 3D.")); });
+      };
+      timer = setTimeout(function () { finish(new Error("Hết thời gian tải thư viện 3D.")); }, 12000);
+      document.head.appendChild(s);
+    }).catch(function (err) { modelViewerPromise = null; throw err; });
+    return modelViewerPromise;
+  }
+  qa(".v3d").forEach(function (box) {
+    var b = box.querySelector("button"), attempt = 0;
+    var status = document.createElement("p");
+    status.className = "v3d-status small"; status.setAttribute("role", "status"); status.setAttribute("aria-live", "polite"); status.hidden = true;
+    box.appendChild(status);
+    function label(text) {
+      if (b.firstChild && b.firstChild.nodeType === 3) b.firstChild.nodeValue = text + " ";
+      else b.insertBefore(document.createTextNode(text + " "), b.firstChild);
+    }
+    function clearViewer() { qa("model-viewer", box).forEach(function (mv) { mv.remove(); }); box.classList.remove("on"); }
+    function fail(current, message) {
+      if (current !== attempt) return;
+      clearViewer(); b.disabled = false; label("Thử lại 3D");
+      status.textContent = message || "Không thể tải mô hình 3D. Vui lòng thử lại."; status.hidden = false;
+    }
+    b.addEventListener("click", function () {
+      var current = ++attempt, modelTimer;
+      clearViewer(); status.hidden = true; status.textContent = "Đang tải mô hình 3D…";
+      b.disabled = true; label("Đang tải 3D…");
+      loadModelViewer().then(function () {
+        if (current !== attempt) return;
         var mv = document.createElement("model-viewer");
         mv.setAttribute("src", box.dataset.glb);
         mv.setAttribute("alt", box.dataset.name + " — mô hình 3D");
-        ["camera-controls", "auto-rotate"].forEach(function (a) { mv.setAttribute(a, ""); });
+        mv.setAttribute("camera-controls", "");
+        if (!reduced()) mv.setAttribute("auto-rotate", "");
         mv.setAttribute("touch-action", "pan-y");
         mv.setAttribute("environment-image", "neutral");
         mv.setAttribute("camera-orbit", "35deg 75deg auto");
-        mv.addEventListener("load", function () { box.classList.add("on"); box.querySelector("img").remove(); b.remove(); });
-        mv.addEventListener("error", function () { b.disabled = false; b.firstChild.textContent = "Thử lại "; });
+        mv.addEventListener("load", function () {
+          if (current !== attempt) return;
+          clearTimeout(modelTimer); box.classList.add("on");
+          var poster = box.querySelector("img"); if (poster) poster.remove();
+          status.remove(); b.remove();
+        });
+        mv.addEventListener("error", function () { clearTimeout(modelTimer); fail(current, "Không thể tải mô hình 3D. Vui lòng thử lại."); });
         box.appendChild(mv);
-      });
+        modelTimer = setTimeout(function () { fail(current, "Hết thời gian tải mô hình 3D. Vui lòng thử lại."); }, 30000);
+      }).catch(function () { fail(current, "Không thể tải trình xem 3D. Vui lòng kiểm tra kết nối và thử lại."); });
     });
   });
 

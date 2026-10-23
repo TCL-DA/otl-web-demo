@@ -118,13 +118,15 @@ def img(key, mode="p"):
             im.save(path, "WEBP", quality=84, method=6)
     return f"img/{name}"
 
-def im_tag(key, mode, alt, cls="", lazy=True, k=False):
+def im_tag(key, mode, alt, cls="", lazy=True, k=False, priority=False):
     src = img(key, mode)
     cls = (cls + " wm").strip() if key in WHITE else cls
     at = f' class="{cls}"' if cls else ""
     dk = f' data-k="{key}"' if k else ""
-    ld = ' loading="lazy"' if lazy else ' fetchpriority="high"'
-    return f'<img src="{src}"{at}{dk} alt="{E(alt)}" decoding="async"{ld}>'
+    ld = ' loading="lazy"' if lazy else ' loading="eager"'
+    if priority: ld += ' fetchpriority="high"'
+    with Image.open(OUT / src) as photo: w, h = photo.size
+    return f'<img src="{src}"{at}{dk} alt="{E(alt)}" width="{w}" height="{h}" decoding="async"{ld}>'
 
 SYS_ICON = ('<svg viewBox="0 0 120 80" width="114" height="76" fill="none" stroke="#86868b" stroke-width="2" '
             'stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="12" y="30" width="46" height="30" rx="5"/>'
@@ -344,10 +346,9 @@ MOTION = {"preset": {"d": 24, "dur": 850, "ease": "cubic-bezier(.2,.7,.2,1)", "s
                     [".grid3 .lc", "rise", {"d": 26}], [".cmp-col", "rise", {"d": 22}], [".uses li", "rise", {"d": 14}],
                     [".sensors li", "rise", {"d": 14}], [".tl-item", "rise", {"d": 22}]]}
 
-# chọn giao diện TRƯỚC khi vẽ (không nháy trắng): đã bấm nút thì theo lựa chọn đã lưu, chưa bấm thì theo máy người xem
-THEME_JS = ("<script>(function(){var d=document.documentElement,k='otl-theme',s=null,m=matchMedia('(prefers-color-scheme: dark)');"
-            "try{s=localStorage.getItem(k)}catch(e){}function a(){d.dataset.theme=s||(m.matches?'dark':'light')}a();"
-            "if(m.addEventListener)m.addEventListener('change',function(){if(!s)a()});"
+# Chọn trước khi vẽ: mặc định gallery tối; giữ nguyên lựa chọn sáng/tối người xem đã lưu.
+THEME_JS = ("<script>(function(){var d=document.documentElement,k='otl-theme',s=null;"
+            "try{s=localStorage.getItem(k)}catch(e){}if(s!=='light'&&s!=='dark')s=null;function a(){d.dataset.theme=s||'dark'}a();"
             "window.OTLTheme={toggle:function(){s=d.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem(k,s)}catch(e){}a();return s}}})()</script>")
 THEME_BTN = ('<button class="theme" type="button" data-theme-toggle aria-label="Chuyển sang giao diện tối">'
              '<svg class="moon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>'
@@ -368,10 +369,10 @@ def VI(name):
 def head(title, desc, gallery_keys=()):
     imgs = {k: img(k, m) for k, m in gallery_keys}
     return (f'<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-            f'<title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta name="color-scheme" content="light dark">{THEME_JS}{FONT}'
+            f'<title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta name="color-scheme" content="dark light"><meta name="theme-color" content="#000000">{THEME_JS}{FONT}'
             f'<link rel="stylesheet" href="{V("site.css")}"><link rel="icon" href="img/icon.png">'
             f'<script>window.IMGS={json.dumps(imgs)}</script><script src="{V("motion.js")}"></script>'
-            f'<script>OTLM.start({json.dumps(MOTION)})</script></head><body>')
+            f'<script>OTLM.start({json.dumps(MOTION)})</script></head><body><a class="skip" href="#main-content">Đến nội dung chính</a>')
 
 def nav(active="", dk=False):
     def top(href, label, key):
@@ -394,9 +395,9 @@ def nav(active="", dk=False):
 <li>{top("about.html", "Về OTL", "about")}</li>
 </ul>
 <a class="btn btn-f sm cta" href="quote.html">Nhận báo giá</a>
-{THEME_BTN}<button class="burger" type="button" aria-label="Menu" aria-expanded="false"><i></i><i></i></button>
+{THEME_BTN}<button class="burger" type="button" aria-label="Mở menu" aria-expanded="false" aria-controls="mobile-menu"><i></i><i></i></button>
 </div></header>
-<div class="mnav" hidden><button class="mnav-x" type="button" aria-label="Đóng menu">&times;</button>
+<div class="mnav" id="mobile-menu" role="dialog" aria-modal="true" aria-label="Điều hướng OTL" hidden><button class="mnav-x" type="button" aria-label="Đóng menu">&times;</button>
 <a href="roasters.html">Máy rang</a>{m_models}
 <a href="equipment.html">Thiết bị</a><a href="solutions.html">Giải pháp</a><a href="compare.html">So sánh</a>
 <a href="support.html">Hỗ trợ</a><a href="about.html">Về OTL</a><a href="quote.html">Nhận báo giá</a>
@@ -428,7 +429,7 @@ def thumb(r):
     return SYS_ICON if r.get("system") else im_tag(r["hero"], "t", r["name"])
 
 def hero_img(r, lazy=False):
-    return im_tag(r["hero"], r["mode"], r["name"], lazy=lazy)
+    return im_tag(r["hero"], r["mode"], r["name"], lazy=lazy, priority=not lazy)
 
 def card_img(r):
     if r.get("system"):   # ảnh thật trong thẻ: cắt khung cho đầy ô
@@ -609,7 +610,7 @@ def lc_eq(e):
 def gallery(items):
     if not items: return ""
     main_k, main_alt = items[0]
-    th = "".join(f'<button type="button" class="{"on" if i == 0 else ""}" data-k="{k}" aria-label="Ảnh {i + 1}: {E(a)}">'
+    th = "".join(f'<button type="button" class="{"on" if i == 0 else ""}" data-k="{k}" data-alt="{E(a)}" aria-pressed="{"true" if i == 0 else "false"}" aria-label="Ảnh {i + 1}: {E(a)}">'
                  f'{im_tag(k, "p", "", k=True)}</button>' for i, (k, a) in enumerate(items))
     return (f'<div class="pg rv"><div class="pg-main">{im_tag(main_k, "p", main_alt, k=True)}</div>'
             f'<div class="pg-t">{th}</div></div>')
@@ -648,10 +649,10 @@ def page_home():
     six = ROASTERS[2]; thirty = ROASTERS[5]
     body = f'''{nav()}
 <main>
-<section class="hero pb home-hero dk" style="--hbg:url({img_hero_bg()})"><div class="wrap">
+<section class="hero pb home-hero dk"><div class="wrap">
 <p class="eyebrow rv">OTL Roaster</p>
 <h1 class="h-hero rv">Máy rang cà phê,<br>từ 1,2 đến 500&nbsp;kg.</h1>
-<p class="sub rv">Thiết kế và chế tạo tại Việt Nam, cùng mọi thiết bị quanh máy rang.</p>
+<p class="sub rv">Thiết kế và chế tạo tại Việt Nam.<br>Đồng bộ từ máy rang đến cả dây chuyền.</p>
 <div class="btns rv"><a class="btn btn-f" href="roasters.html">Khám phá máy rang</a><a class="btn btn-o" href="quote.html">Nhận báo giá</a></div>
 </div>{family_row()}</section>
 
@@ -773,7 +774,7 @@ def page_model(i):
 <nav aria-label="{r["name"]}"><a href="#overview">Tổng quan</a><a href="#highlights">Điểm nổi bật</a>{mini_g}<a href="#specs">Thông số</a></nav>
 <a class="btn btn-f sm" href="{qlink(r["name"])}">Nhận báo giá</a></div></div>
 <main class="{dk.strip()}">
-<section class="hero {"bg-wash" if r["wash"] else "bg-c"}{" pb" if r.get("system") else ""}" id="overview"><div class="wrap">
+<section class="hero product-hero dk bg-w" id="overview"><div class="wrap">
 <p class="eyebrow rv">{r["kind"]}</p><h1 class="h-hero rv">{r["name"]}</h1><p class="sub rv">{r["tagline"]}</p>
 <div class="btns rv"><a class="btn btn-f" href="{qlink(r["name"])}">Nhận báo giá</a><a class="btn btn-o" href="compare.html?a={r["slug"]}">So sánh</a></div>
 {shot}</div></section>
@@ -842,10 +843,10 @@ def page_equip(e):
 <nav aria-label="{e["name"]}"><a href="#overview">Tổng quan</a><a href="#highlights">Điểm nổi bật</a>{'<a href="#gallery">Hình ảnh</a>' if e["gallery"] else ''}<a href="#specs">Thông số</a></nav>
 <a class="btn btn-f sm" href="{qlink(e["name"])}">Nhận báo giá</a></div></div>
 <main>
-<section class="hero bg-c" id="overview"><div class="wrap">
+<section class="hero product-hero dk bg-w" id="overview"><div class="wrap">
 <p class="eyebrow rv">{e["series"]}</p><h1 class="h-hero rv">{e["name"]}</h1><p class="sub rv">{e["tagline"]}</p>
 <div class="btns rv"><a class="btn btn-f" href="{qlink(e["name"])}">Nhận báo giá</a><a class="btn btn-o" href="solutions.html">Xem trọn dây chuyền</a></div>
-<div class="shot rv-up">{im_tag(e["hero"], e["mode"], e["name"], lazy=False)}</div></div></section>
+<div class="shot rv-up">{im_tag(e["hero"], e["mode"], e["name"], lazy=False, priority=True)}</div></div></section>
 <section class="sec bg-w" id="highlights"><div class="wrap">
 <h2 class="h-l rv measure center">{E(e["lead"])}</h2><p class="lead rv measure center" style="margin-top:18px">{E(e["intro"])}</p>
 <div class="stats">{st}</div></div></section>
@@ -883,8 +884,9 @@ def page_compare():
     body = f'''{nav("compare")}
 <main><section class="sec bg-w" style="padding-top:64px"><div class="wrap">
 <h1 class="h-xl rv center">So sánh các mẫu máy rang.</h1>
-<p class="lead rv center" style="margin-top:12px">Chọn tối đa ba mẫu máy để xem cạnh nhau.</p>
-<div class="cmp">{col(1, "otl-06")}{col(2, "otl-15")}{col(3, "otl-30")}</div></div></section>
+<p class="lead rv center" style="margin-top:12px">Chọn mẫu máy theo khối lượng mẻ và sản lượng của bạn.</p>
+<div class="comparison-panel"><div class="cmp">{col(1, "otl-06")}{col(2, "otl-15")}{col(3, "otl-30")}</div>
+<p class="comparison-note">Xem ba mẫu máy trên máy tính, hai mẫu trên điện thoại. Thay lựa chọn ở đầu mỗi cột để so sánh.</p></div></div></section>
 {cta("Vẫn đang cân nhắc?", "Gửi OTL khối lượng mẻ, sản lượng mỗi ngày và mặt bằng — chúng tôi sẽ đề xuất mẫu máy phù hợp.", ("Nhận báo giá", "quote.html"), ("Liên hệ hỗ trợ", "support.html"))}
 </main><script>window.CMP={json.dumps(data, ensure_ascii=False)}</script>{pre}{foot()}'''
     return head("So sánh máy rang — OTL Roaster", "So sánh các mẫu máy rang cà phê OTL cạnh nhau.") + body
@@ -1087,6 +1089,8 @@ def main():
     for e in EQUIP:
         pages[e["slug"]] = page_equip(e)
     for name, h in pages.items():
+        h = h.replace("<main", '<main id="main-content" tabindex="-1"', 1)
+        h = h.replace(' novalidate>', ' novalidate><p class="demo-note full">Biểu mẫu thử nghiệm, chưa gửi thông tin. Để được tư vấn, vui lòng liên hệ OTL qua điện thoại hoặc các kênh nhắn tin.</p>')
         (OUT / f"{name}.html").write_text(h, encoding="utf-8")
     total = sum(p.stat().st_size for p in IMG.iterdir())
     print(f"{len(pages)} trang -> {OUT}  | anh: {len(list(IMG.iterdir()))} file, {total / 1e6:.1f} MB")

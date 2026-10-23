@@ -15,7 +15,10 @@ Làm lại theo góp ý: bỏ kiểu một trang kéo dài, dựng khung nhiều
 - Thiết bị: máy tách đá OD, buồng đốt khói AB, silo OTL và cyclone rời.
 - Các trang chung: So sánh 3 model cạnh nhau, Giải pháp, Hỗ trợ, Về OTL, Hỏi giá (điền sẵn model khi bấm từ trang máy).
 
-Có chế độ tối: tự theo cài đặt máy người xem, nút mặt trăng trên menu để đổi tay; trang OTL-30/60/120 luôn nền tối.
+Bản gallery theo tham chiếu Apple mới người dùng gửi ngày 23/10/2026: mặc định tối, giữ lựa chọn sáng/tối
+đã lưu và có nút đổi tay. Logo giữ màu OTL; nút chính dùng xanh, ảnh máy lớn trên nền đen, media 28 px,
+thanh điều hướng sản phẩm nằm trong khung bo 20 px. Các sân khấu sản phẩm vẫn tối khi xem bản sáng.
+Ảnh nguồn giữ nguyên hình dáng và màu máy, không dựng thêm ánh sáng hay chi tiết phần cứng giả.
 Trang chủ có mục “Trò chuyện với OTL”, 5 video Shorts; mọi trang có bảng chat WhatsApp / Zalo / Messenger,
 liên kết mạng xã hội và nút sao chép thông tin liên hệ. Trên máy tính, Zalo hiện mã QR của số hotline;
 chưa có đường dẫn Zalo OA được xác nhận.
@@ -40,6 +43,14 @@ Chạy `python -X utf8 _src/apple/build.py` rồi `python -u -X utf8 _src/apple/
 Bộ kiểm chạy trên máy tính sáng/tối và điện thoại, kiểm ngôn ngữ, biểu mẫu (gồm email sai định dạng), chat,
 sao chép, so sánh và điền sẵn mẫu máy. Lượt kiểm video chặn tải YouTube và chỉ xác nhận tạo iframe đúng mã;
 không thay thế kiểm phát video thực tế. Bản tiếng Anh trước khi chuyển được giữ ở `_src/apple/build_en_20261023.py`.
+
+Hồi quy tương tác: `python -u -X utf8 _src/apple/kiem_tuong_tac.py`. Kiểm menu mở/đóng nhanh, giữ và trả focus
+bàn phím, khóa nền, gallery đổi nhanh đúng ảnh/mô tả/trạng thái chọn, giảm chuyển động và phục hồi sau lỗi CDN 3D.
+Lượt thử lại 3D tải thư viện và mô hình thật qua máy chủ localhost. Biểu mẫu có thông báo lỗi tiếng Việt
+theo từng trường, luôn nêu rõ chưa gửi dữ liệu; cần nối dịch vụ tiếp nhận trước khi dùng chính thức.
+Rà tương phản riêng: `python -u -X utf8 _src/apple/kiem.py --contrast` (20 trang × hai giao diện;
+chữ thường 4,5:1, chữ lớn 3:1). Đây là kiểm tra tự động theo màu nền gần nhất, không thay thế
+kiểm tra thủ công chữ trên ảnh hoặc đánh giá khả năng tiếp cận đầy đủ.
 
 ## 1–5 · Bản một trang (22–23/10/2026)
 

@@ -4,8 +4,10 @@
 (function () {
   "use strict";
   var root = document.documentElement;
-  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var reduceQuery = window.matchMedia ? matchMedia("(prefers-reduced-motion: reduce)") : null;
+  function reduced() { return !!(reduceQuery && reduceQuery.matches); }
   var M = (window.OTLM = { n: 0 });
+  var activeAnimations = [];
   var FX = {
     rise: function (d) { return [{ opacity: 0, transform: "translate3d(0," + d + "px,0)" }, { opacity: 1, transform: "none" }]; },
     fall: function (d) { return [{ opacity: 0, transform: "translate3d(0," + -d + "px,0)" }, { opacity: 1, transform: "none" }]; },
@@ -26,11 +28,22 @@
   function addCss(t) { var s = document.createElement("style"); s.textContent = t; document.head.appendChild(s); }
   function qa(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
 
+  function track(a) {
+    activeAnimations.push(a); M.n++;
+    function remove() { var i = activeAnimations.indexOf(a); if (i > -1) activeAnimations.splice(i, 1); }
+    a.addEventListener("finish", remove, { once: true });
+    a.addEventListener("cancel", remove, { once: true });
+    return a;
+  }
+
   function anim(el, frames, dur, delay, ease, keep) {
     el.classList.add("m-done");
-    var a = el.animate(frames, { duration: dur, delay: delay, easing: ease, fill: keep ? "both" : "backwards" });
-    M.n++;
-    return a;
+    if (reduced()) {
+      var last = frames[frames.length - 1] || {};
+      Object.keys(last).forEach(function (k) { el.style[k] = last[k]; });
+      return { cancel: function () {} };
+    }
+    return track(el.animate(frames, { duration: dur, delay: delay, easing: ease, fill: keep ? "both" : "backwards" }));
   }
   M.anim = anim;
 
@@ -86,6 +99,7 @@
 
   function wipe(el, o, P, delay) {
     el.classList.add("m-done");
+    if (reduced()) return;
     if (getComputedStyle(el).position === "static") el.style.position = "relative";
     el.style.overflow = "hidden";
     var c = document.createElement("i");
@@ -93,16 +107,21 @@
     c.style.cssText = "position:absolute;inset:0;z-index:3;pointer-events:none;background:" + (o.bg || P.cover) +
       ";transform-origin:" + (o.from || "right") + " center";
     el.appendChild(c);
-    var a = c.animate([{ transform: "scaleX(1)" }, { transform: "scaleX(0)" }],
-      { duration: o.dur || P.dur, delay: delay, easing: o.ease || P.ease, fill: "both" });
-    M.n++;
+    var a = track(c.animate([{ transform: "scaleX(1)" }, { transform: "scaleX(0)" }],
+      { duration: o.dur || P.dur, delay: delay, easing: o.ease || P.ease, fill: "both" }));
     a.onfinish = function () { c.remove(); };
+    a.oncancel = function () { c.remove(); };
     var img = o.settle === false ? null : el.querySelector("img");   /* ảnh rất lớn: tắt phóng-lắng để đỡ vẽ lại */
     if (img) anim(img, FX.settle(), (o.dur || P.dur) * 1.6, delay, P.ease);
   }
 
   function play(el, k) {
     var r = el._m, o = r.o, P = M.cfg.preset;
+    if (reduced()) {
+      el.classList.add("m-done");
+      (r.kids || []).forEach(function (c) { c.classList.add("m-done"); c.style.opacity = "1"; c.style.transform = "none"; });
+      return;
+    }
     var d = o.d != null ? o.d : P.d, dur = o.dur || P.dur, ease = o.ease || P.ease;
     var delay = (o.delay || 0) + k * (o.stagger != null ? o.stagger : P.stagger);
     if (r.kids) {
@@ -149,6 +168,7 @@
         run(waiting.filter(function (el) { var r = el.getBoundingClientRect(); return r.height && r.top < innerHeight && r.bottom > 0; }));
       }, 120);
     }, { passive: true });
+    M.stopPrep = function () { io.disconnect(); waiting.length = 0; };
   }
 
   /* ---------- tương tác ---------- */
@@ -173,21 +193,91 @@
   function menu(P) {
     var b = document.querySelector(".burger"), p = document.querySelector(".mnav");
     if (!b || !p) return;
+    var version = 0, panelAnim = null, itemAnims = [], inertState = [];
+
+    function cancelAnimations() {
+      if (panelAnim) { panelAnim.cancel(); panelAnim = null; }
+      itemAnims.forEach(function (a) { if (a && a.cancel) a.cancel(); });
+      itemAnims = [];
+    }
+
+    /* Khoá mọi nhánh nền, kể cả khi menu được đặt bên trong header; trả lại đúng trạng thái inert ban đầu. */
+    function lockBackground() {
+      if (inertState.length) return;
+      var node = p;
+      while (node && node !== document.body) {
+        var parent = node.parentElement;
+        if (!parent) break;
+        Array.prototype.slice.call(parent.children).forEach(function (el) {
+          if (el === node || inertState.some(function (x) { return x.el === el; })) return;
+          inertState.push({ el: el, value: !!el.inert, had: el.hasAttribute("inert"), attr: el.getAttribute("inert") });
+          el.inert = true;
+          el.setAttribute("inert", "");
+        });
+        node = parent;
+      }
+    }
+    function unlockBackground() {
+      inertState.forEach(function (x) {
+        x.el.inert = x.value;
+        if (x.had) x.el.setAttribute("inert", x.attr || "");
+        else x.el.removeAttribute("inert");
+      });
+      inertState = [];
+    }
+    function focusable() {
+      return qa('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])', p)
+        .filter(function (el) { return !el.hidden && !el.closest("[hidden],[inert]"); });
+    }
     function set(open) {
+      var current = ++version;
+      cancelAnimations();
       b.setAttribute("aria-expanded", open);
       root.classList.toggle("m-lock", open);
       if (open) {
         p.hidden = false;
-        if (!reduce) {
-          anim(p, FX.fade(), 260, 0, P.ease);
-          qa("a,.mnav-x", p).forEach(function (a, i) { anim(a, FX.rise(24), 520, 80 + i * 55, P.ease); });
+        lockBackground();
+        if (!reduced()) {
+          panelAnim = anim(p, FX.fade(), 260, 0, P.ease);
+          var controls = qa("a,.mnav-x,.theme-t", p);
+          var itemStep = controls.length > 1 ? Math.min(18, 150 / (controls.length - 1)) : 0;
+          controls.forEach(function (a, i) { itemAnims.push(anim(a, FX.rise(12), 300, 30 + i * itemStep, P.ease)); });
         }
-      } else if (reduce) p.hidden = true;
-      else { var a = p.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: "ease-in" }); M.n++; a.onfinish = function () { p.hidden = true; }; }
+        requestAnimationFrame(function () {
+          var close = p.querySelector(".mnav-x");
+          if (current === version && b.getAttribute("aria-expanded") === "true" && close) close.focus();
+        });
+      } else {
+        unlockBackground();
+        b.focus();
+        if (reduced()) p.hidden = true;
+        else {
+          var closeAnim = track(p.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: "ease-in" }));
+          panelAnim = closeAnim;
+          closeAnim.onfinish = function () {
+            if (current === version && b.getAttribute("aria-expanded") === "false") p.hidden = true;
+            if (panelAnim === closeAnim) panelAnim = null;
+          };
+          closeAnim.oncancel = function () {
+            if (current === version && reduced() && b.getAttribute("aria-expanded") === "false") p.hidden = true;
+            if (panelAnim === closeAnim) panelAnim = null;
+          };
+        }
+      }
     }
     b.addEventListener("click", function () { set(b.getAttribute("aria-expanded") !== "true"); });
     qa("a,.mnav-x", p).forEach(function (a) { a.addEventListener("click", function () { set(false); }); });
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !p.hidden) set(false); });
+    document.addEventListener("keydown", function (e) {
+      if (p.hidden || b.getAttribute("aria-expanded") !== "true") return;
+      if (e.key === "Escape") { e.preventDefault(); set(false); return; }
+      if (e.key !== "Tab") return;
+      var items = focusable();
+      if (!items.length) { e.preventDefault(); return; }
+      var first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      else if (!p.contains(document.activeElement)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+    });
   }
 
   function filters(P) {
@@ -200,7 +290,7 @@
           items.forEach(function (it) {
             var show = f === "all" || it.dataset.c === f;
             it.hidden = !show;
-            if (show && !reduce) anim(it, FX[P.filterFx || "rise"](P.d * 0.6), 480, k++ * 45, P.ease);
+            if (show && !reduced()) anim(it, FX[P.filterFx || "rise"](P.d * 0.6), 480, k++ * 45, P.ease);
           });
         });
       });
@@ -209,47 +299,117 @@
 
   function galleries(P) {
     qa(".pg").forEach(function (g) {
-      var main = g.querySelector(".pg-main"), img = main.querySelector("img");
-      qa(".pg-t button", g).forEach(function (t) {
+      var main = g.querySelector(".pg-main"), img = main.querySelector("img"), buttons = qa(".pg-t button", g);
+      var version = 0, activeAnim = null, overlay = null;
+      function altOf(t) {
+        var label = t.dataset.alt || t.getAttribute("aria-label") || "";
+        return label.replace(/^Ảnh\s+\d+:\s*/, "") || img.alt;
+      }
+      function fit(el, value) {
+        el.classList.remove("fit-contain", "fit-cover");
+        if (value) el.classList.add("fit-" + value);
+      }
+      buttons.forEach(function (t) {
+        t.setAttribute("aria-pressed", t.classList.contains("on") ? "true" : "false");
         t.addEventListener("click", function () {
-          if (t.classList.contains("on")) return;
-          qa(".pg-t button", g).forEach(function (x) { x.classList.toggle("on", x === t); });
-          var nx = img.cloneNode(); nx.removeAttribute("data-k"); nx.src = M.src(t.dataset.k);
-          if (t.dataset.fit) nx.className = "fit-" + t.dataset.fit;   /* ảnh tách nền: contain · ảnh chụp: cover */
+          if (t.classList.contains("on") && !overlay) return;
+          var current = ++version, src = M.src(t.dataset.k), alt = altOf(t), fitMode = t.dataset.fit || "";
+          buttons.forEach(function (x) {
+            var on = x === t;
+            x.classList.toggle("on", on); x.setAttribute("aria-pressed", on ? "true" : "false");
+          });
+          if (activeAnim) { activeAnim.cancel(); activeAnim = null; }
+          if (overlay) { overlay.remove(); overlay = null; }
+          if (reduced()) {
+            img.src = src; img.alt = alt; fit(img, fitMode);
+            return;
+          }
+          var nx = img.cloneNode(); nx.removeAttribute("data-k"); nx.src = src; nx.alt = alt; fit(nx, fitMode);
           nx.style.cssText = "position:absolute;inset:0;width:100%;height:100%";
-          main.appendChild(nx);
-          var a = nx.animate([{ opacity: 0, transform: "scale(1.06)" }, { opacity: 1, transform: "none" }], { duration: reduce ? 1 : 520, easing: P.ease });
-          M.n++;
-          a.onfinish = function () { img.src = nx.src; if (t.dataset.fit) img.className = nx.className; nx.remove(); };
+          main.appendChild(nx); overlay = nx;
+          activeAnim = track(nx.animate([{ opacity: 0, transform: "scale(1.06)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: P.ease }));
+          function commit() {
+            if (current !== version) return;
+            img.src = src; img.alt = alt; fit(img, fitMode);
+            nx.remove(); overlay = null; activeAnim = null;
+          }
+          activeAnim.onfinish = commit;
+          activeAnim.oncancel = function () { if (reduced()) commit(); };
         });
       });
     });
   }
 
   function forms(P) {
+    var errorNo = 0;
+    function clearError(i) {
+      i.classList.remove("m-bad"); i.removeAttribute("aria-invalid");
+      if (!i._mError) return;
+      i._mError.node.remove();
+      if (i._mError.describedby === null) i.removeAttribute("aria-describedby");
+      else i.setAttribute("aria-describedby", i._mError.describedby);
+      if (i._mError.errormessage === null) i.removeAttribute("aria-errormessage");
+      else i.setAttribute("aria-errormessage", i._mError.errormessage);
+      delete i._mError;
+    }
+    function fieldName(i) {
+      var label = i.id && qa("label").filter(function (x) { return x.htmlFor === i.id; })[0];
+      if (!label) label = i.closest("label");
+      return label ? label.textContent.replace(/\s*\*\s*$/, "").trim() : "trường này";
+    }
+    function messageFor(i) {
+      if (i.validity && i.validity.valueMissing) return "Vui lòng nhập " + fieldName(i) + ".";
+      if (i.type === "email" && i.validity && i.validity.typeMismatch) return "Vui lòng nhập địa chỉ email hợp lệ.";
+      return "Vui lòng kiểm tra thông tin này.";
+    }
+    function showError(i) {
+      clearError(i);
+      var msg = document.createElement("span"), id = "otl-form-error-" + (++errorNo);
+      msg.id = id; msg.className = "m-form-error"; msg.textContent = messageFor(i);
+      i.insertAdjacentElement("afterend", msg);
+      i._mError = {
+        node: msg,
+        describedby: i.getAttribute("aria-describedby"),
+        errormessage: i.getAttribute("aria-errormessage")
+      };
+      var described = (i._mError.describedby || "").split(/\s+/).filter(Boolean);
+      described.push(id);
+      i.setAttribute("aria-describedby", described.join(" "));
+      i.setAttribute("aria-errormessage", id);
+      i.classList.add("m-bad"); i.setAttribute("aria-invalid", "true");
+    }
     qa("form[data-demo]").forEach(function (f) {
       f.addEventListener("submit", function (e) {
         e.preventDefault();
+        var priorStatus = f.querySelector(".m-form-status");
+        if (priorStatus) priorStatus.remove();
+        qa("input, textarea, select", f).forEach(clearError);
         /* Kiểm cả định dạng email và ô trống; novalidate để tự hiển thị lỗi đồng nhất. */
         var bad = qa("input, textarea, select", f).filter(function (i) {
           return (i.required && !i.value.trim()) || !i.validity.valid;
         });
         if (bad.length) {
           bad.forEach(function (i) {
-            i.classList.add("m-bad");
-            i.setAttribute("aria-invalid", "true");
-            i.animate([{ transform: "translateX(0)" }, { transform: "translateX(-8px)" }, { transform: "translateX(7px)" }, { transform: "translateX(-4px)" }, { transform: "translateX(0)" }], { duration: reduce ? 1 : 420, easing: "ease-out" });
-            M.n++;
+            showError(i);
+            if (!reduced()) {
+              track(i.animate([{ transform: "translateX(0)" }, { transform: "translateX(-8px)" }, { transform: "translateX(7px)" }, { transform: "translateX(-4px)" }, { transform: "translateX(0)" }], { duration: 420, easing: "ease-out" }));
+            }
           });
           bad[0].focus();
           return;
         }
-        qa(".m-bad", f).forEach(function (i) { i.classList.remove("m-bad"); i.removeAttribute("aria-invalid"); });
         var b = f.querySelector("button[type=submit]");
-        b.textContent = f.dataset.ok || "Bản demo — thông tin chưa được gửi.";
+        var ok = f.dataset.ok || "Bản demo — thông tin chưa được gửi.";
+        b.textContent = "Thông tin hợp lệ";
+        var status = document.createElement("p");
+        status.className = "m-form-status"; status.setAttribute("role", "status"); status.setAttribute("aria-live", "polite"); status.textContent = ok;
+        b.insertAdjacentElement("afterend", status);
         anim(b, FX.pop(), 520, 0, P.ease);
       });
-      qa("input, textarea, select", f).forEach(function (i) { i.addEventListener("input", function () { i.classList.remove("m-bad"); i.removeAttribute("aria-invalid"); }); });
+      qa("input, textarea, select", f).forEach(function (i) {
+        i.addEventListener("input", function () { clearError(i); });
+        i.addEventListener("change", function () { clearError(i); });
+      });
     });
   }
 
@@ -266,6 +426,7 @@
       var y = scrollY, vh = innerHeight;
       if (bar) bar.style.transform = "scaleX(" + (y / H).toFixed(4) + ")";
       if (top) top.classList.toggle("show", y > vh * 1.2);
+      if (reduced()) { px.forEach(function (p) { p.el.style.transform = ""; }); return; }
       var rects = px.map(function (p) { return p.el.parentElement.getBoundingClientRect(); });
       px.forEach(function (p, i) {
         var r = rects[i];
@@ -278,14 +439,15 @@
     addEventListener("scroll", req, { passive: true });
     addEventListener("resize", function () { measure(); req(); });
     measure(); frame();
-    if (top) top.addEventListener("click", function () { scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); });
+    if (top) top.addEventListener("click", function () { scrollTo({ top: 0, behavior: reduced() ? "auto" : "smooth" }); });
   }
 
   function tilt(cfg) {
-    if (!cfg.tilt || !matchMedia("(hover:hover) and (pointer:fine)").matches || reduce) return;
+    if (!cfg.tilt || !matchMedia("(hover:hover) and (pointer:fine)").matches || reduced()) return;
     qa(cfg.tilt).forEach(function (c) {
       var raf = 0, rx = 0, ry = 0;
       c.addEventListener("pointermove", function (e) {
+        if (reduced()) { c.style.transform = ""; return; }
         var r = c.getBoundingClientRect();
         ry = ((e.clientX - r.left) / r.width - 0.5) * 7; rx = -((e.clientY - r.top) / r.height - 0.5) * 7;
         if (!raf) raf = requestAnimationFrame(function () { raf = 0; c.style.transform = "perspective(900px) rotateX(" + rx.toFixed(2) + "deg) rotateY(" + ry.toFixed(2) + "deg)"; });
@@ -296,12 +458,30 @@
 
   M.start = function (cfg) {
     M.cfg = cfg;
+    if (reduceQuery && !M.reduceBound) {
+      M.reduceBound = true;
+      reduceQuery.addEventListener("change", function (e) {
+        if (!e.matches) return;
+        activeAnimations.slice().forEach(function (a) { try { a.cancel(); } catch (ignore) {} });
+        if (M.stopPrep) M.stopPrep();
+        root.classList.remove("m-on");
+        qa(".m-cover").forEach(function (c) { c.remove(); });
+        (cfg.parallax || []).forEach(function (p) { qa(p[0]).forEach(function (el) { el.style.transform = ""; }); });
+        cfg.rules.forEach(function (r) {
+          qa(r[0]).forEach(function (el) {
+            el.classList.add("m-done");
+            if (el._m && el._m.kids) el._m.kids.forEach(function (c) { c.classList.add("m-done"); c.style.opacity = "1"; c.style.transform = "none"; });
+            delete el._m;
+          });
+        });
+      });
+    }
     var ready = function () {
       setImgs(); menu(cfg.preset); filters(cfg.preset); galleries(cfg.preset); forms(cfg.preset); scrollFx(cfg); tilt(cfg);
-      if (!reduce) prep(cfg);
+      if (!reduced()) prep(cfg);
       if (cfg.after) cfg.after(M);
     };
-    if (!reduce) {
+    if (!reduced()) {
       root.classList.add("m-on");
       var css = "";
       cfg.rules.forEach(function (r) {
@@ -316,7 +496,7 @@
     }
     addCss(".m-w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.14em;margin-bottom:-.14em}" +
       ".m-i,.m-c{display:inline-block}.m-wc{display:inline-block;white-space:nowrap}.m-lock,.m-lock body{overflow:hidden}" +
-      ".m-bad{outline:2px solid #d8262c!important;outline-offset:-1px}");
+      ".m-bad{outline:2px solid #d8262c!important;outline-offset:-1px}.m-form-error{display:block;color:var(--red-ink,#b91c1c);font-size:.82rem;margin-top:.38rem}.m-form-status{margin-top:.75rem}");
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ready); else ready();
   };
 })();

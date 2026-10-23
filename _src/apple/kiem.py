@@ -45,7 +45,7 @@ MENU_CHE = """async()=>{const out=[];const ids=[...new Set([...document.querySel
     const top=t.getBoundingClientRect().top;if(top<bar-2)out.push(h+' bi che '+Math.round(bar-top)+'px')}
   document.documentElement.style.scrollBehavior='';scrollTo(0,0);return out}"""
 
-# tương phản chữ/nền < 3:1 (chữ thường) — nền lấy từ phần tử tổ tiên gần nhất có màu nền; bỏ qua chữ nằm trên ảnh
+# Tương phản: chữ thường cần 4,5:1, chữ lớn cần 3:1; không thay thế kiểm tra thủ công chữ nằm trên ảnh.
 TUONG_PHAN = """()=>{const out=[];const rgb=s=>{const m=s.match(/[\\d.]+/g);return m?m.map(Number):[0,0,0,0]};
   const L=c=>{const f=v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)};return .2126*f(c[0])+.7152*f(c[1])+.0722*f(c[2])};
   document.querySelectorAll('body *').forEach(el=>{
@@ -56,7 +56,8 @@ TUONG_PHAN = """()=>{const out=[];const rgb=s=>{const m=s.match(/[\\d.]+/g);retu
     let bg=null;for(let a=el;a;a=a.parentElement){const c=rgb(getComputedStyle(a).backgroundColor);if(c[3]===undefined||c[3]>.5){bg=c;break}}
     if(!bg) bg=[255,255,255];const fg=rgb(cs.color);
     const l1=L(fg),l2=L(bg),k=(Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05);
-    if(k<3) out.push(el.tagName+' «'+el.textContent.trim().slice(0,26)+'» '+k.toFixed(2)+':1');
+    const large=parseFloat(cs.fontSize)>=24||(parseFloat(cs.fontSize)>=18.66&&parseInt(cs.fontWeight,10)>=700);
+    if(k<(large?3:4.5)) out.push(el.tagName+' «'+el.textContent.trim().slice(0,26)+'» '+k.toFixed(2)+':1');
   });return out.slice(0,10)}"""
 
 def lot(pg, step=420, pause=50):
@@ -71,10 +72,25 @@ def tasks_long(evs):
     return sorted((e.get("dur", 0) / 1000 for e in evs if e.get("ph") == "X" and e.get("name") in ("RunTask", "ThreadControllerImpl::RunTask")
                    and (e["pid"], e["tid"]) == main), reverse=True)
 
+
+def kiem_tuong_phan(name, browser):
+    """Rà chữ nhỏ trên cả hai giao diện; giảm chuyển động để mọi nội dung xuất hiện ngay."""
+    result = {}
+    for theme in ("light", "dark"):
+        ctx = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
+        ctx.add_init_script(f"try{{localStorage.setItem('otl-theme','{theme}')}}catch(e){{}}")
+        page = ctx.new_page()
+        page.goto((SITE / f"{name}.html").as_uri(), wait_until="networkidle")
+        result[theme] = page.evaluate(TUONG_PHAN)
+        ctx.close()
+    result["KET_QUA"] = "DAT" if not result["light"] and not result["dark"] else "CHUA DAT: tuong phan"
+    return result
+
 def kiem(name, b):
     R, url = {}, (SITE / f"{name}.html").as_uri()
     # ---------- máy tính ----------
     ctx = b.new_context(viewport={"width": 1440, "height": 900}, permissions=["clipboard-read", "clipboard-write"])
+    ctx.add_init_script("try{localStorage.setItem('otl-theme','light')}catch(e){}")
     pg = ctx.new_page(); errs = []
     pg.on("console", lambda m: m.type == "error" and errs.append("console: " + m.text[:160]))
     pg.on("pageerror", lambda e: errs.append("js: " + str(e)[:160]))
@@ -189,18 +205,21 @@ def kiem(name, b):
     return R
 
 if __name__ == "__main__":
-    names = sys.argv[1:] or sorted(p.stem for p in SITE.glob("*.html"))
+    contrast_only = "--contrast" in sys.argv[1:]
+    names = [n for n in sys.argv[1:] if n != "--contrast"] or sorted(p.stem for p in SITE.glob("*.html"))
     tong = {}
     with sync_playwright() as p:
         b = p.chromium.launch(args=["--disable-renderer-backgrounding", "--disable-background-timer-throttling"])
         for n in names:
-            R = kiem(n, b); tong[n] = R
+            R = kiem_tuong_phan(n, b) if contrast_only else kiem(n, b)
+            tong[n] = R
             print(f"{n:12s} {R['KET_QUA']}")
             if R["KET_QUA"] != "DAT":
                 for k, v in R.items():
                     if k != "KET_QUA" and v not in ([], False, "ok", 0): print(f"    {k}: {v}")
         b.close()
-    (Path(__file__).parent / "kiem_ket_qua.json").write_text(json.dumps(tong, ensure_ascii=False, indent=1), encoding="utf-8")
+    report = "kiem_tuong_phan.json" if contrast_only else "kiem_ket_qua.json"
+    (Path(__file__).parent / report).write_text(json.dumps(tong, ensure_ascii=False, indent=1), encoding="utf-8")
     dat = sum(1 for r in tong.values() if r["KET_QUA"] == "DAT")
     print(f"\n{dat}/{len(tong)} trang DAT")
     sys.exit(0 if dat == len(tong) else 1)
