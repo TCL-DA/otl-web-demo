@@ -416,3 +416,14 @@ h1,h2,h3,h4,p{margin:0}
 .series th{font-size:12px;font-weight:400;color:var(--ink2);text-align:left;padding:0 14px 12px 0;border-bottom:1px solid var(--line)}
 .series td{font-size:17px;padding:16px 14px 16px 0;border-bottom:1px solid var(--line)}
 .series td:first-child{font-weight:600}
+
+/* ---------- trang chủ: vừa mở trang là thấy cả dàn máy (màn máy tính) ---------- */
+@media (min-width:835px){
+  .home-hero{padding-top:36px}
+  .home-hero .h-hero{font-size:clamp(44px,4.6vw,72px)}
+  .home-hero .sub{font-size:clamp(19px,1.7vw,24px);margin-top:10px}
+  .home-hero .btns{margin-top:20px}
+  .home-hero .family{margin-top:24px;padding-top:20px;padding-bottom:18px}
+  /* cao ảnh = tỉ lệ thật × chỗ còn lại của màn hình (trừ menu + chữ ≈ 500 px), tối đa 360 px, tối thiểu 200 px */
+  .home-hero .family img{height:calc(var(--h) / 360 * max(200px, min(360px, 100vh - 500px)))}
+}

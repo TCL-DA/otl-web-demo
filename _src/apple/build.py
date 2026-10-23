@@ -576,7 +576,7 @@ def page_home():
     six = ROASTERS[2]; thirty = ROASTERS[5]
     body = f'''{nav()}
 <main>
-<section class="hero bg-wash pb"><div class="wrap">
+<section class="hero bg-wash pb home-hero"><div class="wrap">
 <p class="eyebrow rv">OTL Roaster</p>
 <h1 class="h-hero rv">Coffee roasters,<br>from 1.2 to 120&nbsp;kg.</h1>
 <p class="sub rv">Designed and built in Vietnam, with everything around the roaster.</p>
