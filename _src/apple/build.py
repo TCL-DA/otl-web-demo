@@ -320,12 +320,18 @@ THEME_BTN = ('<button class="theme" type="button" data-theme-toggle aria-label="
              '<circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>')
 WHITE = {"ref", "c240", "w30"}   # máy trắng: nền tối KHÔNG cần tấm sáng phía sau
 
+def V(name):
+    """Mã phiên bản theo nội dung file → đổi file là đổi đường dẫn, trình duyệt không kẹt bản cũ
+    (GitHub Pages cho trình duyệt giữ CSS/JS 10 phút: Cache-Control max-age=600)."""
+    import hashlib
+    return f"{name}?v={hashlib.md5((HERE / name).read_bytes()).hexdigest()[:8]}"
+
 def head(title, desc, gallery_keys=()):
     imgs = {k: img(k, m) for k, m in gallery_keys}
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             f'<title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta name="color-scheme" content="light dark">{THEME_JS}{FONT}'
-            f'<link rel="stylesheet" href="site.css"><link rel="icon" href="img/icon.png">'
-            f'<script>window.IMGS={json.dumps(imgs)}</script><script src="motion.js"></script>'
+            f'<link rel="stylesheet" href="{V("site.css")}"><link rel="icon" href="img/icon.png">'
+            f'<script>window.IMGS={json.dumps(imgs)}</script><script src="{V("motion.js")}"></script>'
             f'<script>OTLM.start({json.dumps(MOTION)})</script></head><body>')
 
 def nav(active="", dk=False):
@@ -514,7 +520,7 @@ def foot():
 {FOLLOW}
 <div class="fine"><span>© 2026 OTL Industry Co., Ltd. All rights reserved.</span><span>otlpro.com — design concept</span></div>
 </div></footer>
-{CHAT_BTN}<script src="site.js"></script></body></html>'''
+{CHAT_BTN}<script src="{V("site.js")}"></script></body></html>'''
 
 def cta(title, text, primary=("Request a quote", "quote.html"), secondary=("Compare models", "compare.html"), bg="bg-c"):
     return f'''<section class="sec {bg} cta-band"><div class="wrap">
