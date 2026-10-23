@@ -26,7 +26,14 @@ E = html.escape
 # ======================================================================= ảnh
 # Bộ hồ sơ sếp đưa 23/10 (chép từ máy chủ \\OTESLA-MAYCHU\otesla\06_QUAN_LY\OTL ROASTER)
 MAYCHU = Path(r"F:\Kho-anh\01_May-rang\OTL-ROASTER-maychu")
-EXTRA = {"w30": MAYCHU / "Roaster" / "ROASTER OTL-30" / "30kg trang (2).png",      # OTL-30 trắng, HMI gắn hông — đúng luật nhận diện
+EXTRA = {"h60": MAYCHU / "Roaster" / "ROASTER OTL-60" / "457098953_1000186252120932_8676377476762948059_n.jpg",   # OTL-60/120: ảnh thật, Thành cho ngoại lệ tủ rời 23/10
+         "g60a": MAYCHU / "Roaster" / "ROASTER OTL-60" / "457317283_1000186382120919_4985083329957723627_n.jpg",
+         "g60b": MAYCHU / "Roaster" / "ROASTER OTL-60" / "457362910_1000186538787570_3606097588361354739_n.jpg",
+         "g60c": MAYCHU / "Roaster" / "ROASTER OTL-60" / "IMG_3249.JPG",
+         "h120": MAYCHU / "Roaster" / "ROASTER OTL-120" / "ROASTER OTL-120(PICTURE2).jpg",
+         "g120a": MAYCHU / "Roaster" / "ROASTER OTL-120" / "IMG_2776.JPG",
+         "g120b": MAYCHU / "Roaster" / "ROASTER OTL-120" / "ROASTER OTL-120(PICTURE1)5.jpg",
+          "w30": MAYCHU / "Roaster" / "ROASTER OTL-30" / "30kg trang (2).png",      # OTL-30 trắng, HMI gắn hông — đúng luật nhận diện
          "cyc": MAYCHU / "Cyclone" / "EXTERNAL CYCLONE-OTL6" / "DIMENTION.png"}  # bản vẽ kích thước, ảnh dựng ở bên phải
 Image.MAX_IMAGE_PIXELS = None   # ảnh dựng máy chủ 10000 × 10000 px
 
@@ -64,6 +71,18 @@ def _clear_bg(im, tol=14):
     out = im.convert("RGBA"); out.putalpha(m.point(lambda v: 0 if v == 128 else 255))
     return out
 
+WM = {"h60", "g60a", "g60b"}   # ảnh OTL-60 có logo "Tesla ROASTER" cũ đóng góc trái trên (nằm trên nền mái tôn)
+
+def _no_wm(im):
+    """Xoá logo cũ ở góc trái trên: mặt nạ = điểm đỏ/xanh bão hoà trong vùng 40% × 32%, nới rộng, tô lấp theo nền mái (OpenCV TELEA)."""
+    import cv2, numpy as np
+    a = np.array(im.convert("RGB")); h, w = a.shape[:2]
+    hsv = cv2.cvtColor(a, cv2.COLOR_RGB2HSV)
+    m = ((hsv[..., 1] > 90) & (hsv[..., 2] > 60)).astype(np.uint8) * 255
+    m[int(h * 0.32):, :] = 0; m[:, int(w * 0.40):] = 0
+    m = cv2.dilate(m, np.ones((9, 9), np.uint8), iterations=2)
+    return Image.fromarray(cv2.inpaint(a, m, 9, cv2.INPAINT_TELEA))
+
 def _cut(im):
     im = im.convert("RGBA")
     box = im.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()
@@ -84,6 +103,7 @@ def img(key, mode="p"):
         im = Image.open(_src(key))
         if key == "cyc": im = im.convert("RGB").crop((410, 180, im.width, 665))   # chỉ lấy ảnh dựng (đo vùng điểm tối), bỏ nét bản vẽ
         if im.width > 3000: im.thumbnail((3000, 3000), Image.LANCZOS)   # ảnh 10000 px: thu nhỏ trước khi tô loang
+        if key in WM: im.thumbnail((1600, 1600), Image.LANCZOS); im = _no_wm(im)
         if base_mode == "r": im = _cut(_clear_white(im))
         elif base_mode == "k": im = _cut(_clear_bg(im))
         elif base_mode == "a": im = _cut(im)
@@ -197,7 +217,7 @@ ROASTERS = [
          uses=["Large-scale operations", "Demanding roasting schedules", "Production hubs that need scalability"],
          gallery=[("a123", "OTL-30 drum front and control panel"), ("a126", "Brass cooling tray"),
                   ("a121", "Beans dropping into the cooling tray"), ("a125", "Cooling tray agitator")]),
-    dict(slug="otl-60", name="OTL-60", kind="Industrial roasting system", hero="a293", mode="p", wash=False, dark=True,
+    dict(slug="otl-60", name="OTL-60", kind="Industrial roasting system", hero="h60", mode="p", wash=False, dark=True,
          tagline="Full circulation. Up to 30% less energy.", tag="Full circulation",
          lead="Closed-loop airflow for industrial production.",
          intro="The OTL-60 uses an advanced full-circulation airflow system for efficiency, precision and environmental "
@@ -209,8 +229,9 @@ ROASTERS = [
                    ("Integrated afterburner", "Clean emissions built into the system."),
                    ("Touchscreen and profiles", "Real-time data and programmable profiles for consistent batches.")],
          uses=["Industrial-scale coffee production", "Roasters focused on sustainable practice", "High-quality output at scale"],
-         gallery=[]),
-    dict(slug="otl-120", name="OTL-120", kind="Industrial roasting system", hero="a293", mode="p", wash=False, dark=True,
+         gallery=[("h60", "OTL-60 with its control cabinet"), ("g60a", "OTL-60 cooling tray and drum"),
+                  ("g60b", "OTL-60 control panel"), ("g60c", "OTL-60 installed at a roastery")]),
+    dict(slug="otl-120", name="OTL-120", kind="Industrial roasting system", hero="h120", mode="p", wash=False, dark=True,
          tagline="The full-circulation flagship.", tag="Full circulation",
          lead="120 kg per batch, on a closed loop.",
          intro="The OTL-120 brings the full-circulation airflow system to 120 kg per batch, engineered for large-scale "
@@ -222,7 +243,8 @@ ROASTERS = [
                    ("Integrated afterburner", "Clean emissions built into the system."),
                    ("Modular construction", "High-grade materials and a modular design that simplifies maintenance.")],
          uses=["Industrial-scale coffee production", "Roasters focused on sustainable practice", "High-quality output at scale"],
-         gallery=[]),
+         gallery=[("h120", "OTL-120 at a customer's plant"), ("g120a", "OTL-120 with its cyclone"),
+                  ("g120b", "OTL-120 drum and touchscreen")]),
 ]
 SENSORS = [("Bean", "Core bean temperature for precise roasting."), ("Exhaust", "Keeps airflow clean and efficient."),
            ("Cooling", "Rapid cooling that preserves flavour."), ("Burner air", "Optimal heat delivery."),
@@ -328,6 +350,11 @@ def V(name):
     import hashlib
     return f"{name}?v={hashlib.md5((HERE / name).read_bytes()).hexdigest()[:8]}"
 
+def VI(name):
+    """Mã phiên bản cho ẢNH trong img/ (logo đổi mà trình duyệt giữ ảnh cũ 10 phút — Thành thấy logo lỗi 23/10)."""
+    import hashlib
+    return hashlib.md5((IMG / name).read_bytes()).hexdigest()[:8]
+
 def head(title, desc, gallery_keys=()):
     imgs = {k: img(k, m) for k, m in gallery_keys}
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
@@ -343,7 +370,7 @@ def nav(active="", dk=False):
     eq = "".join(f'<a href="{e["slug"]}.html">{im_tag(e["hero"], "t", e["name"])}<span>{e["short"]}</span></a>' for e in EQUIP)
     m_models = "".join(f'<a class="sm" href="{r["slug"]}.html">{r["name"]}</a>' for r in ROASTERS)
     return f'''<header class="gnav{" dk" if dk else ""}"><div class="in">
-<a class="logo" href="index.html" aria-label="OTL Roaster home"><img class="lg-l" src="{img_logo()}" alt="OTL Roaster" width="85" height="22"><img class="lg-d" src="img/logo_dark.png" alt="OTL Roaster" width="85" height="22"></a>
+<a class="logo" href="index.html" aria-label="OTL Roaster home"><img class="lg-l" src="{img_logo()}?v={VI('logo.png')}" alt="OTL Roaster" width="85" height="22"><img class="lg-d" src="img/logo_dark.png?v={VI('logo_dark.png')}" alt="OTL Roaster" width="85" height="22"></a>
 <ul>
 <li>{top("roasters.html", "Roasters", "roasters")}<div class="fly"><div class="in"><div class="big"><h4>Explore roasters</h4>
 <a href="roasters.html">All roasters</a><a href="compare.html">Compare</a><a href="quote.html">Request a quote</a></div>
@@ -391,12 +418,12 @@ def thumb(r):
     return SYS_ICON if r.get("system") else im_tag(r["hero"], "t", r["name"])
 
 def hero_img(r, lazy=False):
-    if r.get("system"):   # sơ đồ vẽ lại — ảnh sơ đồ gốc (a293) có chữ "Đắk Nông" + logo chìm đè lên khay làm nguội
-        return f'<div class="diagram">{CIRC}</div>'
     return im_tag(r["hero"], r["mode"], r["name"], lazy=lazy)
 
 def card_img(r):
-    return SYS_ICON.replace('width="114" height="76"', 'width="300" height="200"') if r.get("system") else im_tag(r["hero"], r["mode"], r["name"])
+    if r.get("system"):   # ảnh thật trong thẻ: cắt khung cho đầy ô
+        return im_tag(r["hero"], "p", r["name"], cls="ph-card")
+    return im_tag(r["hero"], r["mode"], r["name"])
 
 # Liên hệ nhanh + WhatsApp: có trên otlpro.com hiện tại (form đè lên ảnh nền + nút WhatsApp nổi) — giữ chức năng,
 # trình bày lại kiểu Apple: form là một mục riêng nền sạch; nút chat nổi (WhatsApp · Zalo · Messenger) viền mảnh, không bóng.
@@ -577,6 +604,16 @@ def gallery(items):
 FAMILY = [  # (chỉ số trong ROASTERS, chiều cao thật mm theo otlpro.com, ẩn trên điện thoại?)
     (0, 950, False), (1, 1715, False), (2, 2020, False), (3, 2000, True), (4, 1900, True), (5, 2400, False)]
 
+def img_hero_bg():
+    """Ảnh nền đầu trang chủ = ảnh máy rang của web cũ (a158), làm MỜ sẵn bằng PIL (khỏi tốn CSS blur khi cuộn)."""
+    path = IMG / "hero_bg.jpg"
+    if not path.exists():
+        from PIL import ImageFilter, ImageEnhance
+        im = Image.open(_src("a158")).convert("RGB"); im.thumbnail((1600, 1600), Image.LANCZOS)
+        im = im.filter(ImageFilter.GaussianBlur(7)); im = ImageEnhance.Color(im).enhance(0.75)
+        im.save(path, "JPEG", quality=72, optimize=True, progressive=True)
+    return "img/hero_bg.jpg"
+
 def family_row():
     """Ảnh "cả nhà" kiểu Apple: các máy đứng cạnh nhau, cao theo tỉ lệ chiều cao thật (OTL-30 = 360 px)."""
     out = []
@@ -594,7 +631,7 @@ def page_home():
     six = ROASTERS[2]; thirty = ROASTERS[5]
     body = f'''{nav()}
 <main>
-<section class="hero bg-wash pb home-hero"><div class="wrap">
+<section class="hero pb home-hero dk" style="--hbg:url({img_hero_bg()})"><div class="wrap">
 <p class="eyebrow rv">OTL Roaster</p>
 <h1 class="h-hero rv">Coffee roasters,<br>from 1.2 to 500&nbsp;kg.</h1>
 <p class="sub rv">Designed and built in Vietnam, with everything around the roaster.</p>
@@ -626,7 +663,7 @@ def page_home():
 <div class="art">{im_tag(thirty["hero"], "r", "OTL-30")}</div></div>
 <div class="tile dk"><h2 class="h-l">OTL-60 · OTL-120</h2><p class="sub">Full circulation. Up to 30% less energy.</p>
 <div class="btns"><a class="btn btn-f sm" href="otl-60.html">OTL-60</a><a class="btn btn-o sm" href="otl-120.html">OTL-120</a></div>
-<div class="art dg">{CIRC}</div></div>
+<div class="art ph">{im_tag("h120", "p", "OTL-120 at a customer's plant")}</div></div>
 <div class="tile"><h2 class="h-l">Equipment</h2><p class="sub">Destoner. Afterburner. Silo.</p>
 <div class="btns"><a class="btn btn-f sm" href="equipment.html">Learn more</a><a class="btn btn-o sm" href="solutions.html">Solutions</a></div>
 <div class="art">{im_tag("a73", "r", "OTL silo cluster")}</div></div>
@@ -702,10 +739,12 @@ def page_model(i):
         middle = f'''<section class="sec bg-w" id="system"><div class="wrap">
 <h2 class="h-l rv">Seven points. One closed loop.</h2>
 <p class="lead rv" style="margin-top:14px;max-width:760px">Seven critical temperatures are monitored so you can adjust the roast profile precisely, while the closed loop recycles exhaust air and the integrated afterburner cleans what leaves the system.</p>
+<div class="diagram rv-f" style="margin-top:40px">{CIRC}</div>
 <ul class="sensors">{sens}</ul>
-<div class="btns rv" style="margin-top:36px"><a class="lnk" href="solutions.html#circulation">How full circulation works</a></div></div></section>'''
-        shot = f'<div class="shot photo rv-up">{hero_img(r)}</div><p class="cap note rv">Simplified schematic of the full-circulation airflow. Photography of the {r["name"]} is being updated.</p>'
-        mini_g = '<a href="#system">System</a>'
+<div class="btns rv" style="margin-top:36px"><a class="lnk" href="solutions.html#circulation">How full circulation works</a></div></div></section>
+<section class="sec bg-c" id="gallery"><div class="wrap"><h2 class="h-l rv">Take a closer look.</h2>{gallery(r["gallery"])}</div></section>'''
+        shot = f'<div class="shot photo rv-up">{hero_img(r)}</div>'
+        mini_g = '<a href="#system">System</a><a href="#gallery">Gallery</a>'
     else:
         middle = f'''<section class="sec bg-w" id="gallery"><div class="wrap">
 <h2 class="h-l rv">Take a closer look.</h2>{gallery(r["gallery"])}</div></section>'''

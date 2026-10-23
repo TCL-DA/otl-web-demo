@@ -435,3 +435,14 @@ h1,h2,h3,h4,p{margin:0}
 .v3d .btn{position:absolute;left:50%;bottom:22px;transform:translateX(-50%)}
 .v3d .btn small{font-size:12px;color:#fde2e2;margin-left:4px}
 .v3d model-viewer{position:absolute;inset:0;width:100%;height:100%;background:transparent;--poster-color:transparent}
+
+/* ---------- nền đầu trang chủ: ảnh máy rang mờ + lớp phủ màu phẳng (không gradient) ---------- */
+.home-hero{position:relative;background:#1b1d21 var(--hbg) center 40%/cover no-repeat;isolation:isolate}
+.home-hero::before{content:"";position:absolute;inset:0;background:rgba(27,29,33,.72);z-index:-1}
+.home-hero .family{background:rgba(228,229,232,.94)}
+/* thẻ máy 60/120 trong băng chuyền: ảnh thật bo góc, đầy ô */
+.lc .im img.ph-card{width:100%;height:100%;object-fit:cover;border-radius:12px;padding:0;background:none}
+/* ảnh CHỤP ở đầu trang máy (60/120): không đặt tấm sáng — chỉ ảnh dựng máy đen mới cần */
+:is([data-theme="dark"],.dk) .hero .shot.photo img{background:none;padding:0;border-radius:var(--r-card)}
+/* màn hẹp / phóng to: nút chat chỉ còn biểu tượng, không đè tiêu đề */
+@media (max-width:834px){.chat-b{width:52px;height:52px;padding:0;justify-content:center}.chat-b span{display:none}}
